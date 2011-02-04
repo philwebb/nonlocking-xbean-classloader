@@ -36,12 +36,12 @@ import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.NoOp;
 
 /**
- * Tests the MultiParentClassLoader including classloading and resource loading.
+ * Tests the {@link MultiParentClassLoader} including classloading and resource loading.
+ * 
  * @author Dain Sundstrom
- * @version $Id: MultiParentClassLoaderTest.java 437551 2006-08-28 06:14:47Z adc $
- * @since 2.0
  */
 public class MultiParentClassLoaderTest extends TestCase {
+
 	private static final String CLASS_NAME = "TestClass";
 	private static final String ENTRY_NAME = "foo";
 	private static final String ENTRY_VALUE = "bar";
@@ -61,14 +61,14 @@ public class MultiParentClassLoaderTest extends TestCase {
 		for (int i = 0; i < files.length; i++) {
 			File file = files[i];
 			JarFile jarFile = new JarFile(files[i]);
-			String urlString = "jar:" + file.toURL() + "!/" + ENTRY_NAME;
-			URL url = new URL(files[i].toURL(), urlString);
+			String urlString = "jar:" + file.toURI().toURL() + "!/" + ENTRY_NAME;
+			URL url = new URL(files[i].toURI().toURL(), urlString);
 			assertStreamContains(ENTRY_VALUE + i, url.openStream());
 			jarFile.close();
 
-			URLClassLoader urlClassLoader = new URLClassLoader(new URL[] { file.toURL() });
+			URLClassLoader urlClassLoader = new URLClassLoader(new URL[] { file.toURI().toURL() });
 			// clazz shared by all
-			Class clazz = urlClassLoader.loadClass(CLASS_NAME);
+			Class<?> clazz = urlClassLoader.loadClass(CLASS_NAME);
 			assertNotNull(clazz);
 			assertTrue(SortedSet.class.isAssignableFrom(clazz));
 
@@ -113,7 +113,7 @@ public class MultiParentClassLoaderTest extends TestCase {
 	 */
 	public void testLoadClass() throws Exception {
 		// load class specific to my class loader
-		Class clazz = classLoader.loadClass(CLASS_NAME + 33);
+		Class<?> clazz = classLoader.loadClass(CLASS_NAME + 33);
 		assertNotNull(clazz);
 		assertTrue(SortedSet.class.isAssignableFrom(clazz));
 		assertEquals(classLoader, clazz.getClassLoader());
@@ -203,19 +203,19 @@ public class MultiParentClassLoaderTest extends TestCase {
 	 * @throws Exception if a problem occurs
 	 */
 	public void testGetResources() throws Exception {
-		Enumeration resources = classLoader.getResources(ENTRY_NAME);
+		Enumeration<URL> resources = classLoader.getResources(ENTRY_NAME);
 		assertNotNull(resources);
 		assertTrue(resources.hasMoreElements());
 
 		// there should be one entry for each parent
 		for (int i = 0; i < parents.length; i++) {
-			URL resource = (URL) resources.nextElement();
+			URL resource = resources.nextElement();
 			assertURLContains("Should have found value from parent " + i, ENTRY_VALUE + i, resource);
 		}
 
 		// and one entry from my url
 		assertTrue(resources.hasMoreElements());
-		URL resource = (URL) resources.nextElement();
+		URL resource = resources.nextElement();
 		assertURLContains("Should have found value from my file", ENTRY_VALUE + 33, resource);
 	}
 
@@ -224,7 +224,7 @@ public class MultiParentClassLoaderTest extends TestCase {
 	 * @throws Exception if a problem occurs
 	 */
 	public void testGetNonExistantResources() throws Exception {
-		Enumeration resources = classLoader.getResources(NON_EXISTANT_RESOURCE);
+		Enumeration<URL> resources = classLoader.getResources(NON_EXISTANT_RESOURCE);
 		assertNotNull(resources);
 		assertFalse(resources.hasMoreElements());
 	}
@@ -255,14 +255,6 @@ public class MultiParentClassLoaderTest extends TestCase {
 		assertStreamContains(message, expectedValue, in);
 	}
 
-	private static void assertFileExists(File file) {
-		assertTrue("File should exist: " + file, file.canRead());
-	}
-
-	private static void assertFileNotExists(File file) {
-		assertTrue("File should not exist: " + file, !file.canRead());
-	}
-
 	protected void setUp() throws Exception {
 		super.setUp();
 		files = new File[3];
@@ -272,11 +264,11 @@ public class MultiParentClassLoaderTest extends TestCase {
 
 		parents = new URLClassLoader[3];
 		for (int i = 0; i < parents.length; i++) {
-			parents[i] = new URLClassLoader(new URL[] { files[i].toURL() });
+			parents[i] = new URLClassLoader(new URL[] { files[i].toURI().toURL() });
 		}
 
 		myFile = createJarFile(33);
-		classLoader = createClassLoader(NAME, new URL[] { myFile.toURL() }, parents);
+		classLoader = createClassLoader(NAME, new URL[] { myFile.toURI().toURL() }, parents);
 	}
 
 	/**
@@ -294,28 +286,32 @@ public class MultiParentClassLoaderTest extends TestCase {
 		File file = File.createTempFile("test-" + i + "-", ".jar");
 
 		FileOutputStream out = new FileOutputStream(file);
-		JarOutputStream jarOut = new JarOutputStream(out);
+		try {
+			JarOutputStream jarOut = new JarOutputStream(out);
+			try {
+				// common class shared by everyone
+				jarOut.putNextEntry(new JarEntry(CLASS_NAME + ".class"));
+				jarOut.write(createClass(CLASS_NAME));
 
-		// common class shared by everyone
-		jarOut.putNextEntry(new JarEntry(CLASS_NAME + ".class"));
-		jarOut.write(createClass(CLASS_NAME));
+				// class only available in this jar
+				jarOut.putNextEntry(new JarEntry(CLASS_NAME + i + ".class"));
+				jarOut.write(createClass(CLASS_NAME + i));
 
-		// class only available in this jar
-		jarOut.putNextEntry(new JarEntry(CLASS_NAME + i + ".class"));
-		jarOut.write(createClass(CLASS_NAME + i));
+				// common resource shared by everyone
+				jarOut.putNextEntry(new JarEntry(ENTRY_NAME));
+				jarOut.write((ENTRY_VALUE + i).getBytes());
 
-		// common resource shared by everyone
-		jarOut.putNextEntry(new JarEntry(ENTRY_NAME));
-		jarOut.write((ENTRY_VALUE + i).getBytes());
+				// resource only available in this jar
+				jarOut.putNextEntry(new JarEntry(ENTRY_NAME + i));
+				jarOut.write((ENTRY_VALUE + i + ENTRY_VALUE).getBytes());
 
-		// resource only available in this jar
-		jarOut.putNextEntry(new JarEntry(ENTRY_NAME + i));
-		jarOut.write((ENTRY_VALUE + i + ENTRY_VALUE).getBytes());
-
-		jarOut.close();
-		out.close();
-
-		assertFileExists(file);
+			} finally {
+				jarOut.close();
+			}
+		} finally {
+			out.close();
+		}
+		TstUtils.assertFileExists(file);
 		return file;
 	}
 
