@@ -29,7 +29,7 @@
         <version>3.7</version>
     </parent>
 
-    <artifactId>xbean-classloader</artifactId>
+    <artifactId>xbean-nonlocking-classloader</artifactId>
     <packaging>bundle</packaging>
     <name>Apache XBean :: Classloader</name>
     <description>xbean-classloader includes a flexibie multi-parent classloader</description>
