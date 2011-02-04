@@ -30,7 +30,7 @@ import org.apache.xbean.classloader.UrlResourceFinder.JarFileFactory;
 /**
  * A variation of {@link JarFileClassLoader} that never locks underlying JAR files, allowing JARs to be deleted even if
  * the ClassLoader is open.
- * 
+ *
  * @author Phillip Webb
  */
 public class NonLockingJarFileClassLoader extends JarFileClassLoader {

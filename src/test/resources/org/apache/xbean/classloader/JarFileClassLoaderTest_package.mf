@@ -1,0 +1,9 @@
+Manifest-Version: 1.2
+Name: javax/sample/
+Specification-Title: Sample Specification Title
+Specification-Vendor: Sample Specification Vendor
+Specification-Version: 1.0
+Implementation-Title: javax.sample
+Implementation-Vendor: Sample Implementation Vendor
+Implementation-Version: build10
+sealed: true
