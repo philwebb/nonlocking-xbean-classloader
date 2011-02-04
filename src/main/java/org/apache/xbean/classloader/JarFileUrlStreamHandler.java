@@ -17,8 +17,8 @@
 package org.apache.xbean.classloader;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -27,9 +27,10 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 /**
- * @version $Rev: 776705 $ $Date: 2009-05-20 15:09:47 +0100 (Wed, 20 May 2009) $
+ * @author Dain Sundstrom
  */
 public class JarFileUrlStreamHandler extends URLStreamHandler {
+
 	public static URL createUrl(JarFile jarFile, JarEntry jarEntry) throws MalformedURLException {
 		return createUrl(jarFile, jarEntry, new File(jarFile.getName()).toURI().toURL());
 	}
@@ -46,24 +47,27 @@ public class JarFileUrlStreamHandler extends URLStreamHandler {
 	private final JarEntry jarEntry;
 
 	public JarFileUrlStreamHandler(JarFile jarFile, JarEntry jarEntry) {
-		if (jarFile == null)
-			throw new NullPointerException("jarFile is null");
-		if (jarEntry == null)
-			throw new NullPointerException("jarEntry is null");
-
+		if (jarFile == null) {
+			throw new IllegalArgumentException("Illegal null jarFile specified for JarFileUrlStreamHandler");
+		}
+		if (jarEntry == null) {
+			throw new IllegalArgumentException("Illegal null jarEntry specified for JarFileUrlStreamHandler");
+		}
 		this.jarFile = jarFile;
 		this.jarEntry = jarEntry;
 	}
 
 	public void setExpectedUrl(URL expectedUrl) {
-		if (expectedUrl == null)
-			throw new NullPointerException("expectedUrl is null");
+		if (expectedUrl == null) {
+			throw new IllegalArgumentException("Illegal null expectedUrl specified for setExpectedUrl");
+		}
 		this.expectedUrl = expectedUrl;
 	}
 
 	public URLConnection openConnection(URL url) throws IOException {
-		if (expectedUrl == null)
+		if (expectedUrl == null) {
 			throw new IllegalStateException("expectedUrl was not set");
+		}
 
 		// the caller copied the URL reusing a stream handler from a previous call
 		if (!expectedUrl.equals(url)) {

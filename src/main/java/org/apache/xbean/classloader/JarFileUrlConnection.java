@@ -32,9 +32,10 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 /**
- * @version $Rev: 776705 $ $Date: 2009-05-20 15:09:47 +0100 (Wed, 20 May 2009) $
+ * @author Dain Sundstrom
  */
 public class JarFileUrlConnection extends JarURLConnection {
+
 	public static final URL DUMMY_JAR_URL;
 	static {
 		try {
@@ -56,13 +57,15 @@ public class JarFileUrlConnection extends JarURLConnection {
 	public JarFileUrlConnection(URL url, JarFile jarFile, JarEntry jarEntry) throws MalformedURLException {
 		super(DUMMY_JAR_URL);
 
-		if (url == null)
-			throw new NullPointerException("url is null");
-		if (jarFile == null)
-			throw new NullPointerException("jarFile is null");
-		if (jarEntry == null)
-			throw new NullPointerException("jarEntry is null");
-
+		if (url == null) {
+			throw new IllegalArgumentException("Illegal null url specified for JarFileUrlConnection");
+		}
+		if (jarFile == null) {
+			throw new IllegalArgumentException("Illegal null jarFile specified for JarFileUrlConnection");
+		}
+		if (jarEntry == null) {
+			throw new IllegalArgumentException("Illegal null jarEntry specified for JarFileUrlConnection");
+		}
 		this.url = url;
 		this.jarFile = jarFile;
 		this.jarEntry = jarEntry;
@@ -108,6 +111,10 @@ public class JarFileUrlConnection extends JarURLConnection {
 		return url;
 	}
 
+	public long getLastModified() {
+		return getJarEntry().getTime();
+	}
+
 	public int getContentLength() {
 		long size = getJarEntry().getSize();
 		if (size > Integer.MAX_VALUE) {
@@ -116,16 +123,11 @@ public class JarFileUrlConnection extends JarURLConnection {
 		return (int) size;
 	}
 
-	public long getLastModified() {
-		return getJarEntry().getTime();
-	}
-
 	public synchronized InputStream getInputStream() throws IOException {
 		return jarFile.getInputStream(jarEntry);
 	}
 
 	public Permission getPermission() throws IOException {
-		URL jarFileUrl = new File(jarFile.getName()).toURI().toURL();
 		return jarFileUrl.openConnection().getPermission();
 	}
 

@@ -22,14 +22,13 @@ import java.net.URLStreamHandlerFactory;
 import java.util.Arrays;
 
 /**
- * The NamedClassLoader is a simple extension to URLClassLoader that adds a name and a destroy method that cleans up
- * the commons logging and JavaVM caches of the classloader.
- *
+ * The NamedClassLoader is a simple extension to URLClassLoader that adds a name and a destroy method that cleans up the
+ * commons logging and JavaVM caches of the classloader.
+ * 
  * @author Dain Sundstrom
- * @version $Id: NamedClassLoader.java 517223 2007-03-12 14:02:22Z gnodet $
- * @since 2.0
  */
 public class NamedClassLoader extends URLClassLoader implements DestroyableClassLoader {
+
 	private final String name;
 	private volatile boolean destroyed = false;
 
@@ -68,8 +67,8 @@ public class NamedClassLoader extends URLClassLoader implements DestroyableClass
 	}
 
 	/**
-	 * Check if this classloader has been destroyed 
-	 * @return
+	 * Check if this classloader has been destroyed
+	 * @return true if the classloader has been destroyed
 	 */
 	public boolean isDestroyed() {
 		return destroyed;

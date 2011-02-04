@@ -23,15 +23,18 @@ import java.net.MalformedURLException;
 import java.util.jar.Manifest;
 
 /**
- * @version $Rev: 776705 $ $Date: 2009-05-20 15:09:47 +0100 (Wed, 20 May 2009) $
+ * Directory backed {@link ResourceLocation} implementation.
+ * 
+ * @author Dain Sundstrom
  */
 public class DirectoryResourceLocation extends AbstractUrlResourceLocation {
+
 	private final File baseDir;
 	private boolean manifestLoaded = false;
 	private Manifest manifest;
 
 	public DirectoryResourceLocation(File baseDir) throws MalformedURLException {
-		super(baseDir.toURI().toURL());
+		super(baseDir == null ? null : baseDir.toURI().toURL());
 		this.baseDir = baseDir;
 	}
 
@@ -40,7 +43,6 @@ public class DirectoryResourceLocation extends AbstractUrlResourceLocation {
 		if (!file.exists()) {
 			return null;
 		}
-
 		try {
 			ResourceHandle resourceHandle = new DirectoryResourceHandle(resourceName, file, baseDir, getManifestSafe());
 			return resourceHandle;
@@ -68,12 +70,10 @@ public class DirectoryResourceLocation extends AbstractUrlResourceLocation {
 	}
 
 	private Manifest getManifestSafe() {
-		Manifest manifest = null;
 		try {
-			manifest = getManifest();
+			return getManifest();
 		} catch (IOException e) {
-			// ignore
+			return null;
 		}
-		return manifest;
 	}
 }

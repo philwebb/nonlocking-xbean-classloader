@@ -17,16 +17,15 @@
 package org.apache.xbean.classloader;
 
 /**
- * DestroyableClassLoader is a mixin interface for a ClassLoader that add a destroy method to propertly cleanup a
+ * DestroyableClassLoader is a mixin interface for a ClassLoader that add a destroy method to properly cleanup a
  * classloader then dereferenced by the server.
- *
+ * 
  * @author Dain Sundstrom
- * @version $Id: DestroyableClassLoader.java 437551 2006-08-28 06:14:47Z adc $
- * @since 2.0
  */
 public interface DestroyableClassLoader {
+
 	/**
-	 * Destroys the clasloader releasing all resources.  After this mehtod is called, the class loader will no longer
+	 * Destroys the clasloader releasing all resources. After this method is called, the class loader will no longer
 	 * load any classes or resources.
 	 */
 	void destroy();

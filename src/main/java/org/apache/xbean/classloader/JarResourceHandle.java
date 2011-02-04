@@ -16,20 +16,21 @@
  */
 package org.apache.xbean.classloader;
 
-import java.util.jar.JarFile;
-import java.util.jar.JarEntry;
-import java.util.jar.Manifest;
-import java.util.jar.Attributes;
-import java.net.URL;
-import java.net.MalformedURLException;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.security.cert.Certificate;
+import java.util.jar.Attributes;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
 /**
- * @version $Rev: 437551 $ $Date: 2006-08-28 07:14:47 +0100 (Mon, 28 Aug 2006) $
+ * @author Dain Sundstrom
  */
 public class JarResourceHandle extends AbstractResourceHandle {
+
 	private final JarFile jarFile;
 	private final JarEntry jarEntry;
 	private final URL url;

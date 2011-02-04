@@ -28,16 +28,16 @@ import java.util.List;
 
 /**
  * A MultiParentClassLoader is a simple extension of the URLClassLoader that simply changes the single parent class
- * loader model to support a list of parent class loaders.  Each operation that accesses a parent, has been replaced
- * with a operation that checks each parent in order.  This getParent method of this class will always return null,
- * which may be interperated by the calling code to mean that this class loader is a direct child of the system class
- * loader.
- *
+ * loader model to support a list of parent class loaders. Each operation that accesses a parent, has been replaced with
+ * a operation that checks each parent in order. This getParent method of this class will always return null, which may
+ * be interperated by the calling code to mean that this class loader is a direct child of the system class loader.
+ * 
  * @author Dain Sundstrom
- * @version $Id: MultiParentClassLoader.java 725706 2008-12-11 14:58:11Z gnodet $
- * @since 2.0
  */
 public class MultiParentClassLoader extends NamedClassLoader {
+
+	private static final Enumeration<URL> EMPTY_ENUMERATION = Collections.enumeration(new ArrayList<URL>());
+
 	private final ClassLoader[] parents;
 	private final boolean inverseClassLoading;
 	private final String[] hiddenClasses;
@@ -110,10 +110,9 @@ public class MultiParentClassLoader extends NamedClassLoader {
 	}
 
 	public MultiParentClassLoader(String name, URL[] urls, ClassLoader[] parents, boolean inverseClassLoading,
-			Collection hiddenClasses, Collection nonOverridableClasses) {
-		this(name, urls, parents, inverseClassLoading, (String[]) hiddenClasses
-				.toArray(new String[hiddenClasses.size()]), (String[]) nonOverridableClasses
-				.toArray(new String[nonOverridableClasses.size()]));
+			Collection<String> hiddenClasses, Collection<String> nonOverridableClasses) {
+		this(name, urls, parents, inverseClassLoading, hiddenClasses.toArray(new String[hiddenClasses.size()]),
+				nonOverridableClasses.toArray(new String[nonOverridableClasses.size()]));
 	}
 
 	public MultiParentClassLoader(String name, URL[] urls, ClassLoader[] parents, boolean inverseClassLoading,
@@ -159,34 +158,29 @@ public class MultiParentClassLoader extends NamedClassLoader {
 	/**
 	 * {@inheritDoc}
 	 */
-	protected synchronized Class loadClass(String name, boolean resolve) throws ClassNotFoundException {
-		//
+	protected synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+
 		// Check if class is in the loaded classes cache
-		//
-		Class cachedClass = findLoadedClass(name);
+		Class<?> cachedClass = findLoadedClass(name);
 		if (cachedClass != null) {
 			return resolveClass(cachedClass, resolve);
 		}
 
-		//
 		// if we are using inverse class loading, check local urls first
-		//
 		if (inverseClassLoading && !isDestroyed() && !isNonOverridableClass(name)) {
 			try {
-				Class clazz = findClass(name);
+				Class<?> clazz = findClass(name);
 				return resolveClass(clazz, resolve);
 			} catch (ClassNotFoundException ignored) {
 			}
 		}
 
-		//
 		// Check parent class loaders
-		//
 		if (!isHiddenClass(name)) {
 			for (int i = 0; i < parents.length; i++) {
 				ClassLoader parent = parents[i];
 				try {
-					Class clazz = parent.loadClass(name);
+					Class<?> clazz = parent.loadClass(name);
 					return resolveClass(clazz, resolve);
 				} catch (ClassNotFoundException ignored) {
 					// this parent didn't have the class; try the next one
@@ -194,15 +188,14 @@ public class MultiParentClassLoader extends NamedClassLoader {
 			}
 		}
 
-		//
 		// if we are not using inverse class loading, check local urls now
-		//
+
 		// don't worry about excluding non-overridable classes here... we
 		// have alredy checked he parent and the parent didn't have the
 		// class, so we can override now
 		if (!isDestroyed()) {
 			try {
-				Class clazz = findClass(name);
+				Class<?> clazz = findClass(name);
 				return resolveClass(clazz, resolve);
 			} catch (ClassNotFoundException ignored) {
 			}
@@ -229,7 +222,7 @@ public class MultiParentClassLoader extends NamedClassLoader {
 		return false;
 	}
 
-	private Class resolveClass(Class clazz, boolean resolve) {
+	private Class<?> resolveClass(Class<?> clazz, boolean resolve) {
 		if (resolve) {
 			resolveClass(clazz);
 		}
@@ -244,9 +237,7 @@ public class MultiParentClassLoader extends NamedClassLoader {
 			return null;
 		}
 
-		//
 		// if we are using inverse class loading, check local urls first
-		//
 		if (inverseClassLoading && !isDestroyed() && !isNonOverridableResource(name)) {
 			URL url = findResource(name);
 			if (url != null) {
@@ -254,9 +245,7 @@ public class MultiParentClassLoader extends NamedClassLoader {
 			}
 		}
 
-		//
 		// Check parent class loaders
-		//
 		if (!isHiddenResource(name)) {
 			for (int i = 0; i < parents.length; i++) {
 				ClassLoader parent = parents[i];
@@ -267,9 +256,8 @@ public class MultiParentClassLoader extends NamedClassLoader {
 			}
 		}
 
-		//
 		// if we are not using inverse class loading, check local urls now
-		//
+
 		// don't worry about excluding non-overridable resources here... we
 		// have alredy checked he parent and the parent didn't have the
 		// resource, so we can override now
@@ -284,35 +272,29 @@ public class MultiParentClassLoader extends NamedClassLoader {
 	/**
 	 * {@inheritDoc}
 	 */
-	public Enumeration findResources(String name) throws IOException {
+	public Enumeration<URL> findResources(String name) throws IOException {
 		if (isDestroyed()) {
-			return Collections.enumeration(Collections.EMPTY_SET);
+			return EMPTY_ENUMERATION;
 		}
 
-		List resources = new ArrayList();
+		List<URL> resources = new ArrayList<URL>();
 
-		//
 		// if we are using inverse class loading, add the resources from local urls first
-		//
 		if (inverseClassLoading && !isDestroyed()) {
-			List myResources = Collections.list(super.findResources(name));
+			List<URL> myResources = Collections.list(super.findResources(name));
 			resources.addAll(myResources);
 		}
 
-		//
 		// Add parent resources
-		//
 		for (int i = 0; i < parents.length; i++) {
 			ClassLoader parent = parents[i];
-			List parentResources = Collections.list(parent.getResources(name));
+			List<URL> parentResources = Collections.list(parent.getResources(name));
 			resources.addAll(parentResources);
 		}
 
-		//
 		// if we are not using inverse class loading, add the resources from local urls now
-		//
 		if (!inverseClassLoading && !isDestroyed()) {
-			List myResources = Collections.list(super.findResources(name));
+			List<URL> myResources = Collections.list(super.findResources(name));
 			resources.addAll(myResources);
 		}
 

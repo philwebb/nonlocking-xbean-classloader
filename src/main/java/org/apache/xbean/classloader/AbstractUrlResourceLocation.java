@@ -19,12 +19,18 @@ package org.apache.xbean.classloader;
 import java.net.URL;
 
 /**
- * @version $Rev: 437551 $ $Date: 2006-08-28 07:14:47 +0100 (Mon, 28 Aug 2006) $
+ * Abstract base class for URL backed implementations of {@link ResourceLocation}.
+ * 
+ * @author Dain Sundstrom
  */
 public abstract class AbstractUrlResourceLocation implements ResourceLocation {
+
 	private final URL codeSource;
 
 	public AbstractUrlResourceLocation(URL codeSource) {
+		if (codeSource == null) {
+			throw new IllegalArgumentException("Illegal null codeSource specified for AbstractUrlResourceLocation");
+		}
 		this.codeSource = codeSource;
 	}
 
@@ -36,13 +42,14 @@ public abstract class AbstractUrlResourceLocation implements ResourceLocation {
 	}
 
 	public final boolean equals(Object o) {
-		if (this == o)
+		if (this == o) {
 			return true;
-		if (o == null || getClass() != o.getClass())
+		}
+		if (o == null || getClass() != o.getClass()) {
 			return false;
-
-		AbstractUrlResourceLocation that = (AbstractUrlResourceLocation) o;
-		return codeSource.equals(that.codeSource);
+		}
+		AbstractUrlResourceLocation other = (AbstractUrlResourceLocation) o;
+		return codeSource.equals(other.codeSource);
 	}
 
 	public final int hashCode() {

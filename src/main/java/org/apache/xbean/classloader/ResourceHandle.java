@@ -16,82 +16,84 @@
  */
 package org.apache.xbean.classloader;
 
-import java.net.URL;
-import java.io.InputStream;
 import java.io.IOException;
-import java.util.jar.Manifest;
-import java.util.jar.Attributes;
+import java.io.InputStream;
+import java.net.URL;
 import java.security.cert.Certificate;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 
 /**
- * This is a handle (a connection) to some resource, which may
- * be a class, native library, text file, image, etc. Handles are returned
- * by a ResourceFinder. A resource handle allows easy access to the resource data
- * (using methods {@link #getInputStream} or {@link #getBytes}) as well as
- * access resource metadata, such as attributes, certificates, etc.
+ * This is a handle (a connection) to some resource, which may be a class, native library, text file, image, etc.
+ * Handles are returned by a ResourceFinder. A resource handle allows easy access to the resource data (using methods
+ * {@link #getInputStream} or {@link #getBytes}) as well as access resource metadata, such as attributes, certificates,
+ * etc.
  * <p/>
- * As soon as the handle is no longer in use, it should be explicitly
- * {@link #close}d, similarly to I/O streams.
- *
- * @version $Rev: 437551 $ $Date: 2006-08-28 07:14:47 +0100 (Mon, 28 Aug 2006) $
+ * As soon as the handle is no longer in use, it should be explicitly {@link #close}d, similarly to I/O streams.
+ * 
+ * @author Dain Sundstrom
  */
 public interface ResourceHandle {
+
 	/**
-	 * Return the name of the resource. The name is a "/"-separated path
-	 * name that identifies the resource.
+	 * @return the name of the resource. The name is a "/"-separated path name that identifies the resource.
 	 */
 	String getName();
 
 	/**
-	 * Returns the URL of the resource.
+	 * @return the URL of the resource.
 	 */
 	URL getUrl();
 
 	/**
-	 * Does this resource refer to a directory.  Directory resources are commly used
-	 * as the basis for a URL in client application.  A directory resource has 0 bytes for it's content. 
+	 * Does this resource refer to a directory. Directory resources are commly used as the basis for a URL in client
+	 * application. A directory resource has 0 bytes for it's content.
+	 * @return true if the resource referes to a directory
 	 */
 	boolean isDirectory();
 
 	/**
-	 * Returns the CodeSource URL for the class or resource.
+	 * @return the CodeSource URL for the class or resource.
 	 */
 	URL getCodeSourceUrl();
 
 	/**
-	 * Returns and InputStream for reading this resource data.
+	 * @return and InputStream for reading this resource data.
+	 * @throws IOException
 	 */
 	InputStream getInputStream() throws IOException;
 
 	/**
-	 * Returns the length of this resource data, or -1 if unknown.
+	 * @return the length of this resource data, or -1 if unknown.
 	 */
 	int getContentLength();
 
 	/**
-	 * Returns this resource data as an array of bytes.
+	 * @return this resource data as an array of bytes.
+	 * @throws IOException
 	 */
 	byte[] getBytes() throws IOException;
 
 	/**
-	 * Returns the Manifest of the JAR file from which this resource
-	 * was loaded, or null if none.
+	 * @return the Manifest of the JAR file from which this resource was loaded, or null if none.
+	 * @throws IOException
 	 */
 	Manifest getManifest() throws IOException;
 
 	/**
-	 * Return the Certificates of the resource, or null if none.
+	 * @return the Certificates of the resource, or null if none.
 	 */
 	Certificate[] getCertificates();
 
 	/**
-	 * Return the Attributes of the resource, or null if none.
+	 * @return the Attributes of the resource, or null if none.
+	 * @throws IOException
 	 */
 	Attributes getAttributes() throws IOException;
 
 	/**
-	 * Closes a connection to the resource indentified by this handle. Releases
-	 * any I/O objects associated with the handle.
+	 * Closes a connection to the resource identified by this handle. Releases any I/O objects associated with the
+	 * handle.
 	 */
 	void close();
 }

@@ -22,28 +22,35 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 /**
- * @version $Rev: 437551 $ $Date: 2006-08-28 07:14:47 +0100 (Mon, 28 Aug 2006) $
+ * @param <T>
+ * 
+ * @author Dain Sundstrom
  */
-public final class UnionEnumeration implements Enumeration {
-	private final LinkedList enumerations = new LinkedList();
+public final class UnionEnumeration<T> implements Enumeration<T> {
 
-	public UnionEnumeration(List enumerations) {
+	private final LinkedList<Enumeration<T>> enumerations = new LinkedList<Enumeration<T>>();
+
+	public UnionEnumeration(List<Enumeration<T>> enumerations) {
+		if (enumerations == null) {
+			throw new IllegalArgumentException("Illegal null enumerations specified for UnionEnumeration");
+		}
 		this.enumerations.addAll(enumerations);
 	}
 
-	public UnionEnumeration(Enumeration first, Enumeration second) {
-		if (first == null)
-			throw new NullPointerException("first is null");
-		if (second == null)
-			throw new NullPointerException("second is null");
-
+	public UnionEnumeration(Enumeration<T> first, Enumeration<T> second) {
+		if (first == null) {
+			throw new IllegalArgumentException("Illegal null first specified for UnionEnumeration");
+		}
+		if (second == null) {
+			throw new IllegalArgumentException("Illegal null second specified for UnionEnumeration");
+		}
 		enumerations.add(first);
 		enumerations.add(second);
 	}
 
 	public boolean hasMoreElements() {
 		while (!enumerations.isEmpty()) {
-			Enumeration enumeration = (Enumeration) enumerations.getFirst();
+			Enumeration<T> enumeration = enumerations.getFirst();
 			if (enumeration.hasMoreElements()) {
 				return true;
 			}
@@ -52,9 +59,9 @@ public final class UnionEnumeration implements Enumeration {
 		return false;
 	}
 
-	public Object nextElement() {
+	public T nextElement() {
 		while (!enumerations.isEmpty()) {
-			Enumeration enumeration = (Enumeration) enumerations.getFirst();
+			Enumeration<T> enumeration = enumerations.getFirst();
 			if (enumeration.hasMoreElements()) {
 				return enumeration.nextElement();
 			}

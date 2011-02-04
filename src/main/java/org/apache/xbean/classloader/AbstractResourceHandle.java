@@ -17,23 +17,19 @@
 package org.apache.xbean.classloader;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.security.cert.Certificate;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
 /**
- * @version $Rev: 437551 $ $Date: 2006-08-28 07:14:47 +0100 (Mon, 28 Aug 2006) $
+ * Abstract implementation of {@link ResourceHandle}.
+ * 
+ * @author Dain Sundstrom
  */
 public abstract class AbstractResourceHandle implements ResourceHandle {
+
 	public byte[] getBytes() throws IOException {
-		InputStream in = getInputStream();
-		try {
-			byte[] bytes = IoUtil.getBytes(in);
-			return bytes;
-		} finally {
-			IoUtil.close(in);
-		}
+		return IoUtil.getBytes(getInputStream());
 	}
 
 	public Manifest getManifest() throws IOException {
@@ -45,13 +41,12 @@ public abstract class AbstractResourceHandle implements ResourceHandle {
 	}
 
 	public Attributes getAttributes() throws IOException {
-		Manifest m = getManifest();
-		if (m == null) {
+		Manifest manifest = getManifest();
+		if (manifest == null) {
 			return null;
 		}
-
 		String entry = getUrl().getFile();
-		return m.getAttributes(entry);
+		return manifest.getAttributes(entry);
 	}
 
 	public void close() {

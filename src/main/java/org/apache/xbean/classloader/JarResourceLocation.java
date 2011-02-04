@@ -16,21 +16,25 @@
  */
 package org.apache.xbean.classloader;
 
-import java.util.jar.Manifest;
-import java.util.jar.JarFile;
-import java.util.jar.JarEntry;
-import java.net.URL;
-import java.net.MalformedURLException;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
 /**
- * @version $Rev: 437551 $ $Date: 2006-08-28 07:14:47 +0100 (Mon, 28 Aug 2006) $
+ * @author Dain Sundstrom
  */
 public class JarResourceLocation extends AbstractUrlResourceLocation {
+
 	private final JarFile jarFile;
 
 	public JarResourceLocation(URL codeSource, JarFile jarFile) {
 		super(codeSource);
+		if (jarFile == null) {
+			throw new IllegalArgumentException("Illegal null jarFile specified for JarResourceLocation");
+		}
 		this.jarFile = jarFile;
 	}
 
@@ -38,7 +42,6 @@ public class JarResourceLocation extends AbstractUrlResourceLocation {
 		JarEntry jarEntry = jarFile.getJarEntry(resourceName);
 		if (jarEntry != null) {
 			try {
-				URL url = new URL(getCodeSource(), resourceName);
 				return new JarResourceHandle(jarFile, jarEntry, getCodeSource());
 			} catch (MalformedURLException e) {
 			}

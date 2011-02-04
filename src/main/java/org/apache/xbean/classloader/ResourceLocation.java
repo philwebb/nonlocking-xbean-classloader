@@ -16,20 +16,47 @@
  */
 package org.apache.xbean.classloader;
 
-import java.util.jar.Manifest;
 import java.io.IOException;
 import java.net.URL;
+import java.util.jar.Manifest;
 
 /**
- * This is a location which is searched by
- * @version $Rev: 437551 $ $Date: 2006-08-28 07:14:47 +0100 (Mon, 28 Aug 2006) $
+ * A resource location that acts as a container for named resources. Resource data can be accessed via a
+ * {@link ResourceHandle} obtained using the {@link #getResourceHandle(String)} method. Locations can include manifests
+ * and code source metadata. etc.
+ * <p/>
+ * As soon as the location is no longer in use, it should be explicitly {@link #close}d, similarly to I/O streams.
+ * 
+ * @see JarResourceLocation
+ * @see DirectoryResourceLocation
+ * 
+ * @author Dain Sundstrom
  */
 public interface ResourceLocation {
+
+	/**
+	 * @return the CodeSource URL for the class or resource.
+	 */
 	URL getCodeSource();
 
+	/**
+	 * Obtain a resource handle for the specified resource name or <tt>null</tt> if the name is not contained in the
+	 * location.
+	 * @param resourceName The name of the resource to load
+	 * @return A {@link ResourceHandle} that can be used to access resource data or <tt>null</tt> if the resource cannot
+	 * be located.
+	 */
 	ResourceHandle getResourceHandle(String resourceName);
 
+	/**
+	 * @return the Manifest of the location or <tt>null</tt> if no manifest is availble for this location.
+	 * @throws IOException
+	 */
 	Manifest getManifest() throws IOException;
 
+	/**
+	 * Closes a connection to the resource identified by this location. Releases any I/O objects associated with the
+	 * location.
+	 */
 	void close();
 }

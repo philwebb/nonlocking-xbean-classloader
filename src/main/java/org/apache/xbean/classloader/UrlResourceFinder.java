@@ -38,22 +38,36 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 /**
- * @version $Rev: 776705 $ $Date: 2009-05-20 15:09:47 +0100 (Wed, 20 May 2009) $
+ * @author Dain Sundstrom
  */
 public class UrlResourceFinder implements ResourceFinder {
+
+	private static final JarFileFactory DEFAULT_JAR_FILE_FACTORY = new JarFileFactory() {
+		public JarFile newJarFile(File file) throws IOException {
+			return new JarFile(file);
+		}
+	};
+
 	private final Object lock = new Object();
 
-	private final LinkedHashSet urls = new LinkedHashSet();
-	private final LinkedHashMap classPath = new LinkedHashMap();
-	private final LinkedHashSet watchedFiles = new LinkedHashSet();
+	private final LinkedHashSet<URL> urls = new LinkedHashSet<URL>();
+	private final LinkedHashMap<URL, ResourceLocation> classPath = new LinkedHashMap<URL, ResourceLocation>();
+	private final LinkedHashSet<File> watchedFiles = new LinkedHashSet<File>();
 
 	private boolean destroyed = false;
+	private JarFileFactory jarFileFactory;
 
-	public UrlResourceFinder() {
+	public UrlResourceFinder(JarFileFactory jarFileFactory) {
+		this(jarFileFactory, new URL[] {});
 	}
 
-	public UrlResourceFinder(URL[] urls) {
+	public UrlResourceFinder(JarFileFactory jarFileFactory, URL[] urls) {
+		this.jarFileFactory = (jarFileFactory == null ? DEFAULT_JAR_FILE_FACTORY : jarFileFactory);
 		addUrls(urls);
+	}
+
+	protected final JarFileFactory getJarFileFactory() {
+		return jarFileFactory;
 	}
 
 	public void destroy() {
@@ -63,8 +77,8 @@ public class UrlResourceFinder implements ResourceFinder {
 			}
 			destroyed = true;
 			urls.clear();
-			for (Iterator iterator = classPath.values().iterator(); iterator.hasNext();) {
-				ResourceLocation resourceLocation = (ResourceLocation) iterator.next();
+			for (Iterator<ResourceLocation> iterator = classPath.values().iterator(); iterator.hasNext();) {
+				ResourceLocation resourceLocation = iterator.next();
 				resourceLocation.close();
 			}
 			classPath.clear();
@@ -76,9 +90,10 @@ public class UrlResourceFinder implements ResourceFinder {
 			if (destroyed) {
 				return null;
 			}
-			for (Iterator iterator = getClassPath().entrySet().iterator(); iterator.hasNext();) {
-				Map.Entry entry = (Map.Entry) iterator.next();
-				ResourceLocation resourceLocation = (ResourceLocation) entry.getValue();
+			for (Iterator<Map.Entry<URL, ResourceLocation>> iterator = getClassPath().entrySet().iterator(); iterator
+					.hasNext();) {
+				Map.Entry<URL, ResourceLocation> entry = iterator.next();
+				ResourceLocation resourceLocation = entry.getValue();
 				ResourceHandle resourceHandle = resourceLocation.getResourceHandle(resourceName);
 				if (resourceHandle != null && !resourceHandle.isDirectory()) {
 					return resourceHandle;
@@ -93,9 +108,10 @@ public class UrlResourceFinder implements ResourceFinder {
 			if (destroyed) {
 				return null;
 			}
-			for (Iterator iterator = getClassPath().entrySet().iterator(); iterator.hasNext();) {
-				Map.Entry entry = (Map.Entry) iterator.next();
-				ResourceLocation resourceLocation = (ResourceLocation) entry.getValue();
+			for (Iterator<Map.Entry<URL, ResourceLocation>> iterator = getClassPath().entrySet().iterator(); iterator
+					.hasNext();) {
+				Map.Entry<URL, ResourceLocation> entry = iterator.next();
+				ResourceLocation resourceLocation = entry.getValue();
 				ResourceHandle resourceHandle = resourceLocation.getResourceHandle(resourceName);
 				if (resourceHandle != null) {
 					return resourceHandle.getUrl();
@@ -105,9 +121,9 @@ public class UrlResourceFinder implements ResourceFinder {
 		return null;
 	}
 
-	public Enumeration findResources(String resourceName) {
+	public Enumeration<URL> findResources(String resourceName) {
 		synchronized (lock) {
-			return new ResourceEnumeration(new ArrayList(getClassPath().values()), resourceName);
+			return new ResourceEnumeration(new ArrayList<ResourceLocation>(getClassPath().values()), resourceName);
 		}
 	}
 
@@ -117,7 +133,7 @@ public class UrlResourceFinder implements ResourceFinder {
 
 	public URL[] getUrls() {
 		synchronized (lock) {
-			return (URL[]) urls.toArray(new URL[urls.size()]);
+			return urls.toArray(new URL[urls.size()]);
 		}
 	}
 
@@ -133,7 +149,7 @@ public class UrlResourceFinder implements ResourceFinder {
 	 * Adds a list of urls to the end of this class loader.
 	 * @param urls the URLs to add
 	 */
-	protected void addUrls(List urls) {
+	protected void addUrls(List<URL> urls) {
 		synchronized (lock) {
 			if (destroyed) {
 				throw new IllegalStateException("UrlResourceFinder has been destroyed");
@@ -146,11 +162,11 @@ public class UrlResourceFinder implements ResourceFinder {
 		}
 	}
 
-	private LinkedHashMap getClassPath() {
+	private LinkedHashMap<URL, ResourceLocation> getClassPath() {
 		assert Thread.holdsLock(lock) : "This method can only be called while holding the lock";
 
-		for (Iterator iterator = watchedFiles.iterator(); iterator.hasNext();) {
-			File file = (File) iterator.next();
+		for (Iterator<File> iterator = watchedFiles.iterator(); iterator.hasNext();) {
+			File file = iterator.next();
 			if (file.canRead()) {
 				rebuildClassPath();
 				break;
@@ -161,21 +177,21 @@ public class UrlResourceFinder implements ResourceFinder {
 	}
 
 	/**
-	 * Rebuilds the entire class path.  This class is called when new URLs are added or one of the watched files
-	 * becomes readable.  This method will not open jar files again, but will add any new entries not alredy open
-	 * to the class path.  If any file based url is does not exist, we will watch for that file to appear.
+	 * Rebuilds the entire class path. This class is called when new URLs are added or one of the watched files becomes
+	 * readable. This method will not open jar files again, but will add any new entries not alredy open to the class
+	 * path. If any file based url is does not exist, we will watch for that file to appear.
 	 */
 	private void rebuildClassPath() {
 		assert Thread.holdsLock(lock) : "This method can only be called while holding the lock";
 
 		// copy all of the existing locations into a temp map and clear the class path
-		Map existingJarFiles = new LinkedHashMap(classPath);
+		Map<URL, ResourceLocation> existingJarFiles = new LinkedHashMap<URL, ResourceLocation>(classPath);
 		classPath.clear();
 
-		LinkedList locationStack = new LinkedList(urls);
+		LinkedList<URL> locationStack = new LinkedList<URL>(urls);
 		try {
 			while (!locationStack.isEmpty()) {
-				URL url = (URL) locationStack.removeFirst();
+				URL url = locationStack.removeFirst();
 
 				// Skip any duplicate urls in the claspath
 				if (classPath.containsKey(url)) {
@@ -183,7 +199,7 @@ public class UrlResourceFinder implements ResourceFinder {
 				}
 
 				// Check is this URL has already been opened
-				ResourceLocation resourceLocation = (ResourceLocation) existingJarFiles.remove(url);
+				ResourceLocation resourceLocation = existingJarFiles.remove(url);
 
 				// If not opened, cache the url and wrap it with a resource location
 				if (resourceLocation == null) {
@@ -210,7 +226,7 @@ public class UrlResourceFinder implements ResourceFinder {
 				classPath.put(resourceLocation.getCodeSource(), resourceLocation);
 
 				// push the manifest classpath on the stack (make sure to maintain the order)
-				List manifestClassPath = getManifestClassPath(resourceLocation);
+				List<URL> manifestClassPath = getManifestClassPath(resourceLocation);
 				locationStack.addAll(0, manifestClassPath);
 			}
 		} catch (Error e) {
@@ -218,8 +234,8 @@ public class UrlResourceFinder implements ResourceFinder {
 			throw e;
 		}
 
-		for (Iterator iterator = existingJarFiles.values().iterator(); iterator.hasNext();) {
-			ResourceLocation resourceLocation = (ResourceLocation) iterator.next();
+		for (Iterator<ResourceLocation> iterator = existingJarFiles.values().iterator(); iterator.hasNext();) {
+			ResourceLocation resourceLocation = iterator.next();
 			resourceLocation.close();
 		}
 	}
@@ -259,30 +275,30 @@ public class UrlResourceFinder implements ResourceFinder {
 			// do not user the DirectoryResourceLocation for non file based urls
 			resourceLocation = new DirectoryResourceLocation(cacheFile);
 		} else {
-			resourceLocation = new JarResourceLocation(codeSource, new JarFile(cacheFile));
+			resourceLocation = new JarResourceLocation(codeSource, jarFileFactory.newJarFile(cacheFile));
 		}
 		return resourceLocation;
 	}
 
-	private List getManifestClassPath(ResourceLocation resourceLocation) {
+	private List<URL> getManifestClassPath(ResourceLocation resourceLocation) {
 		try {
 			// get the manifest, if possible
 			Manifest manifest = resourceLocation.getManifest();
 			if (manifest == null) {
 				// some locations don't have a manifest
-				return Collections.EMPTY_LIST;
+				return Collections.emptyList();
 			}
 
 			// get the class-path attribute, if possible
 			String manifestClassPath = manifest.getMainAttributes().getValue(Attributes.Name.CLASS_PATH);
 			if (manifestClassPath == null) {
-				return Collections.EMPTY_LIST;
+				return Collections.emptyList();
 			}
 
 			// build the urls...
 			// the class-path attribute is space delimited
 			URL codeSource = resourceLocation.getCodeSource();
-			LinkedList classPathUrls = new LinkedList();
+			LinkedList<URL> classPathUrls = new LinkedList<URL>();
 			for (StringTokenizer tokenizer = new StringTokenizer(manifestClassPath, " "); tokenizer.hasMoreTokens();) {
 				String entry = tokenizer.nextToken();
 				try {
@@ -296,7 +312,21 @@ public class UrlResourceFinder implements ResourceFinder {
 			return classPathUrls;
 		} catch (IOException ignored) {
 			// error opening the manifest
-			return Collections.EMPTY_LIST;
+			return Collections.emptyList();
 		}
+	}
+
+	/**
+	 * Factory interface that is used by the {@link UrlResourceFinder} to create a new {@link JarFile} instance. Allows
+	 * for various different {@link JarFile} implementations to be supported by the finder.
+	 */
+	public static interface JarFileFactory {
+		/**
+		 * Factory method used to create a {@link JarFile} instance for the specified {@link File}.
+		 * @param file The file to read
+		 * @return A {@link JarFile} instance, this can also be a specialised subclass of {@link JarFile}.
+		 * @throws IOException
+		 */
+		public JarFile newJarFile(File file) throws IOException;
 	}
 }

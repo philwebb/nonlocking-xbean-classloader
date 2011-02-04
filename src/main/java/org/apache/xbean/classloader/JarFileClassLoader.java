@@ -16,16 +16,16 @@
  */
 package org.apache.xbean.classloader;
 
-import java.io.IOException;
 import java.io.File;
-import java.net.URL;
+import java.io.IOException;
 import java.net.URI;
+import java.net.URL;
 import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.security.CodeSource;
 import java.security.PrivilegedAction;
-import java.security.PrivilegedExceptionAction;
 import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.security.cert.Certificate;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -33,23 +33,20 @@ import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
 /**
- * The JarFileClassLoader that loads classes and resources from a list of JarFiles.  This method is simmilar to URLClassLoader
- * except it properly closes JarFiles when the classloader is destroyed so that the file read lock will be released, and
- * the jar file can be modified and deleted.
- * <p>
- * Note: This implementation currently does not work reliably on windows, since the jar URL handler included with the Sun JavaVM
- * holds a read lock on the JarFile, and this lock is not released when the jar url is dereferenced.  To fix this a
- * replacement for the jar url handler must be written.
- *
+ * The JarFileClassLoader that loads classes and resources from a list of JarFiles. This method is similar to
+ * URLClassLoader except it properly closes JarFiles when the classloader is destroyed so that the file read lock will
+ * be released, and the jar file can be modified and deleted.
+ * 
  * @author Dain Sundstrom
- * @version $Id: JarFileClassLoader.java 437551 2006-08-28 06:14:47Z adc $
- * @since 2.0
+ * 
+ * @see NonLockingJarFile
  */
 public class JarFileClassLoader extends MultiParentClassLoader {
+
 	private static final URL[] EMPTY_URLS = new URL[0];
 
-	private final UrlResourceFinder resourceFinder = new UrlResourceFinder();
-	private final AccessControlContext acc;
+	private UrlResourceFinder resourceFinder;
+	private AccessControlContext accessControlContext;
 
 	/**
 	 * Creates a JarFileClassLoader that is a child of the system class loader.
@@ -58,8 +55,7 @@ public class JarFileClassLoader extends MultiParentClassLoader {
 	 */
 	public JarFileClassLoader(String name, URL[] urls) {
 		super(name, EMPTY_URLS);
-		this.acc = AccessController.getContext();
-		addURLs(urls);
+		initialize(urls);
 	}
 
 	/**
@@ -70,15 +66,22 @@ public class JarFileClassLoader extends MultiParentClassLoader {
 	 */
 	public JarFileClassLoader(String name, URL[] urls, ClassLoader parent) {
 		super(name, EMPTY_URLS, parent);
-		this.acc = AccessController.getContext();
-		addURLs(urls);
+		initialize(urls);
 	}
 
+	/**
+	 * Creates a JarFileClassLoader that is a child of the specified class loader.
+	 * @param name
+	 * @param urls
+	 * @param parent
+	 * @param inverseClassLoading
+	 * @param hiddenClasses
+	 * @param nonOverridableClasses
+	 */
 	public JarFileClassLoader(String name, URL[] urls, ClassLoader parent, boolean inverseClassLoading,
 			String[] hiddenClasses, String[] nonOverridableClasses) {
 		super(name, EMPTY_URLS, parent, inverseClassLoading, hiddenClasses, nonOverridableClasses);
-		this.acc = AccessController.getContext();
-		addURLs(urls);
+		initialize(urls);
 	}
 
 	/**
@@ -89,22 +92,83 @@ public class JarFileClassLoader extends MultiParentClassLoader {
 	 */
 	public JarFileClassLoader(String name, URL[] urls, ClassLoader[] parents) {
 		super(name, EMPTY_URLS, parents);
-		this.acc = AccessController.getContext();
-		addURLs(urls);
+		initialize(urls);
 	}
 
+	/**
+	 * Creates a JarFileClassLoader that is a child of the specified class loaders.
+	 * @param name
+	 * @param urls
+	 * @param parents
+	 * @param inverseClassLoading
+	 * @param hiddenClasses
+	 * @param nonOverridableClasses
+	 */
 	public JarFileClassLoader(String name, URL[] urls, ClassLoader[] parents, boolean inverseClassLoading,
-			Collection hiddenClasses, Collection nonOverridableClasses) {
+			Collection<String> hiddenClasses, Collection<String> nonOverridableClasses) {
 		super(name, EMPTY_URLS, parents, inverseClassLoading, hiddenClasses, nonOverridableClasses);
-		this.acc = AccessController.getContext();
-		addURLs(urls);
+		initialize(urls);
 	}
 
+	/**
+	 * Creates a JarFileClassLoader that is a child of the specified class loaders.
+	 * @param name
+	 * @param urls
+	 * @param parents
+	 * @param inverseClassLoading
+	 * @param hiddenClasses
+	 * @param nonOverridableClasses
+	 */
 	public JarFileClassLoader(String name, URL[] urls, ClassLoader[] parents, boolean inverseClassLoading,
 			String[] hiddenClasses, String[] nonOverridableClasses) {
 		super(name, EMPTY_URLS, parents, inverseClassLoading, hiddenClasses, nonOverridableClasses);
-		this.acc = AccessController.getContext();
-		addURLs(urls);
+		initialize(urls);
+	}
+
+	/**
+	 * Determine if URLs should be added during {@link #initialize(URL[])}. The default implementation returns
+	 * <tt>true</tt>, subclasses can override if they need to perform additional setups before {@link #addURLs(URL[])}
+	 * is called.
+	 * 
+	 * @return true if URLs should be added on {@link #initialize(URL[])}
+	 */
+	protected boolean addUrlsOnInitialize() {
+		return true;
+	}
+
+	/**
+	 * Initialize method called from all constructors.
+	 * 
+	 * @param urls
+	 */
+	protected void initialize(URL[] urls) {
+		this.accessControlContext = AccessController.getContext();
+		setResourceFinder(newResourceFinder());
+		if (addUrlsOnInitialize()) {
+			addURLs(urls);
+		}
+	}
+
+	/**
+	 * Factory method used to create the resource finder used with this class loader. The default implementation returns
+	 * a {@link UrlResourceFinder}.
+	 * 
+	 * @return A {@link UrlResourceFinder}.
+	 * @see #setResourceFinder(UrlResourceFinder)
+	 */
+	protected UrlResourceFinder newResourceFinder() {
+		return new UrlResourceFinder(null);
+	}
+
+	/**
+	 * Set the resource finder that will be used to perform all resource operations. Generally this method will not be
+	 * called directly, instead the {@link #newResourceFinder()} factory method should be overridden. This method is
+	 * primarily intended for test cases to use.
+	 * 
+	 * @param resourceFinder
+	 */
+	protected final void setResourceFinder(UrlResourceFinder resourceFinder) {
+		this.resourceFinder = resourceFinder;
 	}
 
 	/**
@@ -118,12 +182,12 @@ public class JarFileClassLoader extends MultiParentClassLoader {
 	 * {@inheritDoc}
 	 */
 	public void addURL(final URL url) {
-		AccessController.doPrivileged(new PrivilegedAction() {
+		AccessController.doPrivileged(new PrivilegedAction<Object>() {
 			public Object run() {
 				resourceFinder.addUrl(url);
 				return null;
 			}
-		}, acc);
+		}, accessControlContext);
 	}
 
 	/**
@@ -131,12 +195,12 @@ public class JarFileClassLoader extends MultiParentClassLoader {
 	 * @param urls the URLs to add
 	 */
 	protected void addURLs(final URL[] urls) {
-		AccessController.doPrivileged(new PrivilegedAction() {
+		AccessController.doPrivileged(new PrivilegedAction<Object>() {
 			public Object run() {
 				resourceFinder.addUrls(urls);
 				return null;
 			}
-		}, acc);
+		}, accessControlContext);
 	}
 
 	/**
@@ -151,30 +215,29 @@ public class JarFileClassLoader extends MultiParentClassLoader {
 	 * {@inheritDoc}
 	 */
 	public URL findResource(final String resourceName) {
-		return (URL) AccessController.doPrivileged(new PrivilegedAction() {
+		return (URL) AccessController.doPrivileged(new PrivilegedAction<Object>() {
 			public Object run() {
 				return resourceFinder.findResource(resourceName);
 			}
-		}, acc);
+		}, accessControlContext);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public Enumeration findResources(final String resourceName) throws IOException {
-		// todo this is not right
+	public Enumeration<URL> findResources(final String resourceName) throws IOException {
 		// first get the resources from the parent classloaders
-		Enumeration parentResources = super.findResources(resourceName);
+		Enumeration<URL> parentResources = super.findResources(resourceName);
 
 		// get the classes from my urls
-		Enumeration myResources = (Enumeration) AccessController.doPrivileged(new PrivilegedAction() {
-			public Object run() {
+		Enumeration<URL> myResources = AccessController.doPrivileged(new PrivilegedAction<Enumeration<URL>>() {
+			public Enumeration<URL> run() {
 				return resourceFinder.findResources(resourceName);
 			}
-		}, acc);
+		}, accessControlContext);
 
 		// join the two together
-		Enumeration resources = new UnionEnumeration(parentResources, myResources);
+		Enumeration<URL> resources = new UnionEnumeration<URL>(parentResources, myResources);
 		return resources;
 	}
 
@@ -199,17 +262,17 @@ public class JarFileClassLoader extends MultiParentClassLoader {
 		}
 
 		// get a resource handle to the library
-		ResourceHandle resourceHandle = (ResourceHandle) AccessController.doPrivileged(new PrivilegedAction() {
-			public Object run() {
+		ResourceHandle resourceHandle = AccessController.doPrivileged(new PrivilegedAction<ResourceHandle>() {
+			public ResourceHandle run() {
 				return resourceFinder.getResource(resourceName);
 			}
-		}, acc);
+		}, accessControlContext);
 
 		if (resourceHandle == null) {
 			return null;
 		}
 
-		// the library must be accessable on the file system
+		// the library must be accessible on the file system
 		URL url = resourceHandle.getUrl();
 		if (!"file".equals(url.getProtocol())) {
 			return null;
@@ -222,10 +285,10 @@ public class JarFileClassLoader extends MultiParentClassLoader {
 	/**
 	 * {@inheritDoc}
 	 */
-	protected Class findClass(final String className) throws ClassNotFoundException {
+	protected Class<?> findClass(final String className) throws ClassNotFoundException {
 		try {
-			return (Class) AccessController.doPrivileged(new PrivilegedExceptionAction() {
-				public Object run() throws ClassNotFoundException {
+			return AccessController.doPrivileged(new PrivilegedExceptionAction<Class<?>>() {
+				public Class<?> run() throws ClassNotFoundException {
 					// first think check if we are allowed to define the package
 					SecurityManager securityManager = System.getSecurityManager();
 					if (securityManager != null) {
@@ -271,10 +334,10 @@ public class JarFileClassLoader extends MultiParentClassLoader {
 					CodeSource codeSource = new CodeSource(codeSourceUrl, certificates);
 
 					// load the class into the vm
-					Class clazz = defineClass(className, bytes, 0, bytes.length, codeSource);
+					Class<?> clazz = defineClass(className, bytes, 0, bytes.length, codeSource);
 					return clazz;
 				}
-			}, acc);
+			}, accessControlContext);
 		} catch (PrivilegedActionException e) {
 			throw (ClassNotFoundException) e.getException();
 		}

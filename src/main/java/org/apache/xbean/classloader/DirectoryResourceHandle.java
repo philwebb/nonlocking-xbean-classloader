@@ -16,20 +16,23 @@
  */
 package org.apache.xbean.classloader;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.net.URL;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.security.cert.Certificate;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
 /**
- * @version $Rev: 776705 $ $Date: 2009-05-20 15:09:47 +0100 (Wed, 20 May 2009) $
+ * Directory backed {@link ResourceHandle} implementation.
+ * 
+ * @author Dain Sundstrom
  */
 public class DirectoryResourceHandle extends AbstractResourceHandle {
+
 	private final String name;
 	private final File file;
 	private final Manifest manifest;
@@ -38,11 +41,17 @@ public class DirectoryResourceHandle extends AbstractResourceHandle {
 
 	public DirectoryResourceHandle(String name, File file, File codeSource, Manifest manifest)
 			throws MalformedURLException {
+		if (file == null) {
+			throw new IllegalArgumentException("Illegal null file specified for DirectoryResourceHandle");
+		}
+		if (codeSource == null) {
+			throw new IllegalArgumentException("Illegal null codeSource specified for DirectoryResourceHandle");
+		}
 		this.name = name;
 		this.file = file;
+		this.url = file.toURI().toURL();
 		this.codeSource = codeSource.toURI().toURL();
 		this.manifest = manifest;
-		url = file.toURI().toURL();
 	}
 
 	public String getName() {
@@ -88,8 +97,9 @@ public class DirectoryResourceHandle extends AbstractResourceHandle {
 	}
 
 	/**
-	 * Always return null.  This could be implementd by verifing the signatures
-	 * in the manifest file against the actual file, but we don't need this right now.
+	 * Always return null. This could be implemented by verifying the signatures in the manifest file against the actual
+	 * file, but we don't need this right now.
+	 * 
 	 * @return null
 	 */
 	public Certificate[] getCertificates() {

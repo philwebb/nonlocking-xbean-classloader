@@ -16,34 +16,36 @@
  */
 package org.apache.xbean.classloader;
 
+import java.net.URL;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Iterator;
-import java.util.Collection;
 import java.util.NoSuchElementException;
 
 /**
- * @version $Rev: 437551 $ $Date: 2006-08-28 07:14:47 +0100 (Mon, 28 Aug 2006) $
+ * @author Dain Sundstrom
  */
-public class ResourceEnumeration implements Enumeration {
-	private Iterator iterator;
-	private final String resourceName;
-	private Object next;
+public class ResourceEnumeration implements Enumeration<URL> {
 
-	public ResourceEnumeration(Collection resourceLocations, String resourceName) {
+	private Iterator<ResourceLocation> iterator;
+	private final String resourceName;
+	private URL next;
+
+	public ResourceEnumeration(Collection<ResourceLocation> resourceLocations, String resourceName) {
 		this.iterator = resourceLocations.iterator();
 		this.resourceName = resourceName;
 	}
 
 	public boolean hasMoreElements() {
-		fetchNext();
+		fetchNextIfNull();
 		return (next != null);
 	}
 
-	public Object nextElement() {
-		fetchNext();
+	public URL nextElement() {
+		fetchNextIfNull();
 
 		// save next into a local variable and clear the next field
-		Object next = this.next;
+		URL next = this.next;
 		this.next = null;
 
 		// if we didn't have a next throw an exception
@@ -53,7 +55,7 @@ public class ResourceEnumeration implements Enumeration {
 		return next;
 	}
 
-	private void fetchNext() {
+	private void fetchNextIfNull() {
 		if (iterator == null) {
 			return;
 		}
@@ -63,7 +65,7 @@ public class ResourceEnumeration implements Enumeration {
 
 		try {
 			while (iterator.hasNext()) {
-				ResourceLocation resourceLocation = (ResourceLocation) iterator.next();
+				ResourceLocation resourceLocation = iterator.next();
 				ResourceHandle resourceHandle = resourceLocation.getResourceHandle(resourceName);
 				if (resourceHandle != null) {
 					next = resourceHandle.getUrl();

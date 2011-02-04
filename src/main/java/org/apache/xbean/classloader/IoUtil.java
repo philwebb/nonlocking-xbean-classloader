@@ -20,14 +20,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.Reader;
-import java.io.Writer;
 import java.util.jar.JarFile;
 
 /**
- * @version $Rev: 437551 $ $Date: 2006-08-28 07:14:47 +0100 (Mon, 28 Aug 2006) $
+ * @author Dain Sundstrom
  */
 public final class IoUtil {
+
 	private IoUtil() {
 	}
 
@@ -45,64 +44,37 @@ public final class IoUtil {
 		}
 	}
 
-	public static void flush(OutputStream thing) {
-		if (thing != null) {
+	public static void flush(OutputStream outputStream) {
+		if (outputStream != null) {
 			try {
-				thing.flush();
+				outputStream.flush();
 			} catch (Exception ignored) {
 			}
 		}
 	}
 
-	public static void flush(Writer thing) {
-		if (thing != null) {
+	public static void close(JarFile jarFile) {
+		if (jarFile != null) {
 			try {
-				thing.flush();
+				jarFile.close();
 			} catch (Exception ignored) {
 			}
 		}
 	}
 
-	public static void close(JarFile thing) {
-		if (thing != null) {
+	public static void close(InputStream inputStream) {
+		if (inputStream != null) {
 			try {
-				thing.close();
+				inputStream.close();
 			} catch (Exception ignored) {
 			}
 		}
 	}
 
-	public static void close(InputStream thing) {
-		if (thing != null) {
+	public static void close(OutputStream outputStream) {
+		if (outputStream != null) {
 			try {
-				thing.close();
-			} catch (Exception ignored) {
-			}
-		}
-	}
-
-	public static void close(OutputStream thing) {
-		if (thing != null) {
-			try {
-				thing.close();
-			} catch (Exception ignored) {
-			}
-		}
-	}
-
-	public static void close(Reader thing) {
-		if (thing != null) {
-			try {
-				thing.close();
-			} catch (Exception ignored) {
-			}
-		}
-	}
-
-	public static void close(Writer thing) {
-		if (thing != null) {
-			try {
-				thing.close();
+				outputStream.close();
 			} catch (Exception ignored) {
 			}
 		}
@@ -113,33 +85,12 @@ public final class IoUtil {
 			return -1;
 		}
 
-		public int read(byte b[]) {
-			return -1;
-		}
-
 		public int read(byte b[], int off, int len) {
 			return -1;
 		}
 
 		public long skip(long n) {
 			return 0;
-		}
-
-		public int available() {
-			return 0;
-		}
-
-		public void close() {
-		}
-
-		public synchronized void mark(int readlimit) {
-		}
-
-		public synchronized void reset() {
-		}
-
-		public boolean markSupported() {
-			return false;
 		}
 	}
 }
