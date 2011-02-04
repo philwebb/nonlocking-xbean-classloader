@@ -25,39 +25,41 @@ import java.util.NoSuchElementException;
  * @version $Rev: 437551 $ $Date: 2006-08-28 07:14:47 +0100 (Mon, 28 Aug 2006) $
  */
 public final class UnionEnumeration implements Enumeration {
-    private final LinkedList enumerations = new LinkedList();
+	private final LinkedList enumerations = new LinkedList();
 
-    public UnionEnumeration(List enumerations) {
-        this.enumerations.addAll(enumerations);
-    }
+	public UnionEnumeration(List enumerations) {
+		this.enumerations.addAll(enumerations);
+	}
 
-    public UnionEnumeration(Enumeration first, Enumeration second) {
-        if (first == null) throw new NullPointerException("first is null");
-        if (second == null) throw new NullPointerException("second is null");
+	public UnionEnumeration(Enumeration first, Enumeration second) {
+		if (first == null)
+			throw new NullPointerException("first is null");
+		if (second == null)
+			throw new NullPointerException("second is null");
 
-        enumerations.add(first);
-        enumerations.add(second);
-    }
+		enumerations.add(first);
+		enumerations.add(second);
+	}
 
-    public boolean hasMoreElements() {
-        while (!enumerations.isEmpty()) {
-            Enumeration enumeration = (Enumeration) enumerations.getFirst();
-            if (enumeration.hasMoreElements()) {
-                return true;
-            }
-            enumerations.removeFirst();
-        }
-        return false;
-    }
+	public boolean hasMoreElements() {
+		while (!enumerations.isEmpty()) {
+			Enumeration enumeration = (Enumeration) enumerations.getFirst();
+			if (enumeration.hasMoreElements()) {
+				return true;
+			}
+			enumerations.removeFirst();
+		}
+		return false;
+	}
 
-    public Object nextElement() {
-        while (!enumerations.isEmpty()) {
-            Enumeration enumeration = (Enumeration) enumerations.getFirst();
-            if (enumeration.hasMoreElements()) {
-                return enumeration.nextElement();
-            }
-            enumerations.removeFirst();
-        }
-        throw new NoSuchElementException();
-    }
+	public Object nextElement() {
+		while (!enumerations.isEmpty()) {
+			Enumeration enumeration = (Enumeration) enumerations.getFirst();
+			if (enumeration.hasMoreElements()) {
+				return enumeration.nextElement();
+			}
+			enumerations.removeFirst();
+		}
+		throw new NoSuchElementException();
+	}
 }

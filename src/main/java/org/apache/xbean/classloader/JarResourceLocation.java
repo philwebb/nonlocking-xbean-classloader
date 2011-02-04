@@ -26,31 +26,31 @@ import java.io.IOException;
 /**
  * @version $Rev: 437551 $ $Date: 2006-08-28 07:14:47 +0100 (Mon, 28 Aug 2006) $
  */
-public class JarResourceLocation extends AbstractUrlResourceLocation  {
-    private final JarFile jarFile;
+public class JarResourceLocation extends AbstractUrlResourceLocation {
+	private final JarFile jarFile;
 
-    public JarResourceLocation(URL codeSource, JarFile jarFile) {
-        super(codeSource);
-        this.jarFile = jarFile;
-    }
+	public JarResourceLocation(URL codeSource, JarFile jarFile) {
+		super(codeSource);
+		this.jarFile = jarFile;
+	}
 
-    public ResourceHandle getResourceHandle(String resourceName) {
-        JarEntry jarEntry = jarFile.getJarEntry(resourceName);
-        if (jarEntry != null) {
-            try {
-                URL url = new URL(getCodeSource(), resourceName);
-                return new JarResourceHandle(jarFile, jarEntry, getCodeSource());
-            } catch (MalformedURLException e) {
-            }
-        }
-        return null;
-    }
+	public ResourceHandle getResourceHandle(String resourceName) {
+		JarEntry jarEntry = jarFile.getJarEntry(resourceName);
+		if (jarEntry != null) {
+			try {
+				URL url = new URL(getCodeSource(), resourceName);
+				return new JarResourceHandle(jarFile, jarEntry, getCodeSource());
+			} catch (MalformedURLException e) {
+			}
+		}
+		return null;
+	}
 
-    public Manifest getManifest() throws IOException {
-        return jarFile.getManifest();
-    }
+	public Manifest getManifest() throws IOException {
+		return jarFile.getManifest();
+	}
 
-    public void close() {
-        IoUtil.close(jarFile);
-    }
+	public void close() {
+		IoUtil.close(jarFile);
+	}
 }

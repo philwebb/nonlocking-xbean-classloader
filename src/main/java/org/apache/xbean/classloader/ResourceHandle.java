@@ -36,62 +36,62 @@ import java.security.cert.Certificate;
  * @version $Rev: 437551 $ $Date: 2006-08-28 07:14:47 +0100 (Mon, 28 Aug 2006) $
  */
 public interface ResourceHandle {
-    /**
-     * Return the name of the resource. The name is a "/"-separated path
-     * name that identifies the resource.
-     */
-    String getName();
+	/**
+	 * Return the name of the resource. The name is a "/"-separated path
+	 * name that identifies the resource.
+	 */
+	String getName();
 
-    /**
-     * Returns the URL of the resource.
-     */
-    URL getUrl();
+	/**
+	 * Returns the URL of the resource.
+	 */
+	URL getUrl();
 
-    /**
-     * Does this resource refer to a directory.  Directory resources are commly used
-     * as the basis for a URL in client application.  A directory resource has 0 bytes for it's content. 
-     */
-    boolean isDirectory();
+	/**
+	 * Does this resource refer to a directory.  Directory resources are commly used
+	 * as the basis for a URL in client application.  A directory resource has 0 bytes for it's content. 
+	 */
+	boolean isDirectory();
 
-    /**
-     * Returns the CodeSource URL for the class or resource.
-     */
-    URL getCodeSourceUrl();
+	/**
+	 * Returns the CodeSource URL for the class or resource.
+	 */
+	URL getCodeSourceUrl();
 
-    /**
-     * Returns and InputStream for reading this resource data.
-     */
-    InputStream getInputStream() throws IOException;
+	/**
+	 * Returns and InputStream for reading this resource data.
+	 */
+	InputStream getInputStream() throws IOException;
 
-    /**
-     * Returns the length of this resource data, or -1 if unknown.
-     */
-    int getContentLength();
+	/**
+	 * Returns the length of this resource data, or -1 if unknown.
+	 */
+	int getContentLength();
 
-    /**
-     * Returns this resource data as an array of bytes.
-     */
-    byte[] getBytes() throws IOException;
+	/**
+	 * Returns this resource data as an array of bytes.
+	 */
+	byte[] getBytes() throws IOException;
 
-    /**
-     * Returns the Manifest of the JAR file from which this resource
-     * was loaded, or null if none.
-     */
-    Manifest getManifest() throws IOException;
+	/**
+	 * Returns the Manifest of the JAR file from which this resource
+	 * was loaded, or null if none.
+	 */
+	Manifest getManifest() throws IOException;
 
-    /**
-     * Return the Certificates of the resource, or null if none.
-     */
-    Certificate[] getCertificates();
+	/**
+	 * Return the Certificates of the resource, or null if none.
+	 */
+	Certificate[] getCertificates();
 
-    /**
-     * Return the Attributes of the resource, or null if none.
-     */
-    Attributes getAttributes() throws IOException;
+	/**
+	 * Return the Attributes of the resource, or null if none.
+	 */
+	Attributes getAttributes() throws IOException;
 
-    /**
-     * Closes a connection to the resource indentified by this handle. Releases
-     * any I/O objects associated with the handle.
-     */
-    void close();
+	/**
+	 * Closes a connection to the resource indentified by this handle. Releases
+	 * any I/O objects associated with the handle.
+	 */
+	void close();
 }

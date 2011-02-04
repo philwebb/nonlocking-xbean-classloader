@@ -26,54 +26,54 @@ import java.util.jar.Manifest;
  * @version $Rev: 776705 $ $Date: 2009-05-20 15:09:47 +0100 (Wed, 20 May 2009) $
  */
 public class DirectoryResourceLocation extends AbstractUrlResourceLocation {
-    private final File baseDir;
-    private boolean manifestLoaded = false;
-    private Manifest manifest;
+	private final File baseDir;
+	private boolean manifestLoaded = false;
+	private Manifest manifest;
 
-    public DirectoryResourceLocation(File baseDir) throws MalformedURLException {
-        super(baseDir.toURI().toURL());
-        this.baseDir = baseDir;
-    }
+	public DirectoryResourceLocation(File baseDir) throws MalformedURLException {
+		super(baseDir.toURI().toURL());
+		this.baseDir = baseDir;
+	}
 
-    public ResourceHandle getResourceHandle(String resourceName) {
-        File file = new File(baseDir, resourceName);
-        if (!file.exists()) {
-            return null;
-        }
+	public ResourceHandle getResourceHandle(String resourceName) {
+		File file = new File(baseDir, resourceName);
+		if (!file.exists()) {
+			return null;
+		}
 
-        try {
-            ResourceHandle resourceHandle = new DirectoryResourceHandle(resourceName, file, baseDir, getManifestSafe());
-            return resourceHandle;
-        } catch (MalformedURLException e) {
-            return null;
-        }
-    }
+		try {
+			ResourceHandle resourceHandle = new DirectoryResourceHandle(resourceName, file, baseDir, getManifestSafe());
+			return resourceHandle;
+		} catch (MalformedURLException e) {
+			return null;
+		}
+	}
 
-    public Manifest getManifest() throws IOException {
-        if (!manifestLoaded) {
-            File manifestFile = new File(baseDir, "META-INF/MANIFEST.MF");
+	public Manifest getManifest() throws IOException {
+		if (!manifestLoaded) {
+			File manifestFile = new File(baseDir, "META-INF/MANIFEST.MF");
 
-            if (manifestFile.isFile() && manifestFile.canRead()) {
-                FileInputStream in = null;
-                try {
-                    in = new FileInputStream(manifestFile);
-                    manifest = new Manifest(in);
-                } finally {
-                    IoUtil.close(in);
-                }
-            }
-            manifestLoaded = true;
-        }
-        return manifest;
-    }
+			if (manifestFile.isFile() && manifestFile.canRead()) {
+				FileInputStream in = null;
+				try {
+					in = new FileInputStream(manifestFile);
+					manifest = new Manifest(in);
+				} finally {
+					IoUtil.close(in);
+				}
+			}
+			manifestLoaded = true;
+		}
+		return manifest;
+	}
 
-    private Manifest getManifestSafe() {
-        Manifest manifest = null;
-        try {
-            manifest = getManifest();
-        } catch (IOException e) {
-            // ignore
-        }
-        return manifest;
-    }
+	private Manifest getManifestSafe() {
+		Manifest manifest = null;
+		try {
+			manifest = getManifest();
+		} catch (IOException e) {
+			// ignore
+		}
+		return manifest;
+	}
 }

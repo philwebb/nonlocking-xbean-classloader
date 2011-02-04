@@ -26,38 +26,38 @@ import java.util.jar.Manifest;
  * @version $Rev: 437551 $ $Date: 2006-08-28 07:14:47 +0100 (Mon, 28 Aug 2006) $
  */
 public abstract class AbstractResourceHandle implements ResourceHandle {
-    public byte[] getBytes() throws IOException {
-        InputStream in = getInputStream();
-        try {
-            byte[] bytes = IoUtil.getBytes(in);
-            return bytes;
-        } finally {
-            IoUtil.close(in);
-        }
-    }
+	public byte[] getBytes() throws IOException {
+		InputStream in = getInputStream();
+		try {
+			byte[] bytes = IoUtil.getBytes(in);
+			return bytes;
+		} finally {
+			IoUtil.close(in);
+		}
+	}
 
-    public Manifest getManifest() throws IOException {
-        return null;
-    }
+	public Manifest getManifest() throws IOException {
+		return null;
+	}
 
-    public Certificate[] getCertificates() {
-        return null;
-    }
+	public Certificate[] getCertificates() {
+		return null;
+	}
 
-    public Attributes getAttributes() throws IOException {
-        Manifest m = getManifest();
-        if (m == null) {
-            return null;
-        }
+	public Attributes getAttributes() throws IOException {
+		Manifest m = getManifest();
+		if (m == null) {
+			return null;
+		}
 
-        String entry = getUrl().getFile();
-        return m.getAttributes(entry);
-    }
+		String entry = getUrl().getFile();
+		return m.getAttributes(entry);
+	}
 
-    public void close() {
-    }
+	public void close() {
+	}
 
-    public String toString() {
-        return "[" + getName() + ": " + getUrl() + "; code source: " + getCodeSourceUrl() + "]";
-    }
+	public String toString() {
+		return "[" + getName() + ": " + getUrl() + "; code source: " + getCodeSourceUrl() + "]";
+	}
 }

@@ -30,68 +30,69 @@ import java.util.jar.Manifest;
  * @version $Rev: 776705 $ $Date: 2009-05-20 15:09:47 +0100 (Wed, 20 May 2009) $
  */
 public class DirectoryResourceHandle extends AbstractResourceHandle {
-    private final String name;
-    private final File file;
-    private final Manifest manifest;
-    private final URL url;
-    private final URL codeSource;
+	private final String name;
+	private final File file;
+	private final Manifest manifest;
+	private final URL url;
+	private final URL codeSource;
 
-    public DirectoryResourceHandle(String name, File file, File codeSource, Manifest manifest) throws MalformedURLException {
-        this.name = name;
-        this.file = file;
-        this.codeSource = codeSource.toURI().toURL();
-        this.manifest = manifest;
-        url = file.toURI().toURL();
-    }
+	public DirectoryResourceHandle(String name, File file, File codeSource, Manifest manifest)
+			throws MalformedURLException {
+		this.name = name;
+		this.file = file;
+		this.codeSource = codeSource.toURI().toURL();
+		this.manifest = manifest;
+		url = file.toURI().toURL();
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public URL getUrl() {
-        return url;
-    }
+	public URL getUrl() {
+		return url;
+	}
 
-    public URL getCodeSourceUrl() {
-        return codeSource;
-    }
+	public URL getCodeSourceUrl() {
+		return codeSource;
+	}
 
-    public boolean isDirectory() {
-        return file.isDirectory();
-    }
+	public boolean isDirectory() {
+		return file.isDirectory();
+	}
 
-    public InputStream getInputStream() throws IOException {
-        if (file.isDirectory()) {
-            return new IoUtil.EmptyInputStream();
-        }
-        return new FileInputStream(file);
-    }
+	public InputStream getInputStream() throws IOException {
+		if (file.isDirectory()) {
+			return new IoUtil.EmptyInputStream();
+		}
+		return new FileInputStream(file);
+	}
 
-    public int getContentLength() {
-        if (file.isDirectory() || file.length() > Integer.MAX_VALUE) {
-            return -1;
-        } else {
-            return (int) file.length();
-        }
-    }
+	public int getContentLength() {
+		if (file.isDirectory() || file.length() > Integer.MAX_VALUE) {
+			return -1;
+		} else {
+			return (int) file.length();
+		}
+	}
 
-    public Manifest getManifest() throws IOException {
-        return manifest;
-    }
+	public Manifest getManifest() throws IOException {
+		return manifest;
+	}
 
-    public Attributes getAttributes() throws IOException {
-        if (manifest == null) {
-            return null;
-        }
-        return manifest.getAttributes(getName());
-    }
+	public Attributes getAttributes() throws IOException {
+		if (manifest == null) {
+			return null;
+		}
+		return manifest.getAttributes(getName());
+	}
 
-    /**
-     * Always return null.  This could be implementd by verifing the signatures
-     * in the manifest file against the actual file, but we don't need this right now.
-     * @return null
-     */
-    public Certificate[] getCertificates() {
-        return null;
-    }
+	/**
+	 * Always return null.  This could be implementd by verifing the signatures
+	 * in the manifest file against the actual file, but we don't need this right now.
+	 * @return null
+	 */
+	public Certificate[] getCertificates() {
+		return null;
+	}
 }

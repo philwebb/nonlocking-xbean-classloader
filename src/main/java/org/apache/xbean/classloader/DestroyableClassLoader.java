@@ -25,9 +25,9 @@ package org.apache.xbean.classloader;
  * @since 2.0
  */
 public interface DestroyableClassLoader {
-    /**
-     * Destroys the clasloader releasing all resources.  After this mehtod is called, the class loader will no longer
-     * load any classes or resources.
-     */
-    void destroy();
+	/**
+	 * Destroys the clasloader releasing all resources.  After this mehtod is called, the class loader will no longer
+	 * load any classes or resources.
+	 */
+	void destroy();
 }

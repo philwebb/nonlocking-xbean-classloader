@@ -28,118 +28,118 @@ import java.util.jar.JarFile;
  * @version $Rev: 437551 $ $Date: 2006-08-28 07:14:47 +0100 (Mon, 28 Aug 2006) $
  */
 public final class IoUtil {
-    private IoUtil() {
-    }
+	private IoUtil() {
+	}
 
-    public static byte[] getBytes(InputStream inputStream) throws IOException {
-        try {
-            byte[] buffer = new byte[4096];
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            for (int count = inputStream.read(buffer); count >= 0; count = inputStream.read(buffer)) {
-                out.write(buffer, 0, count);
-            }
-            byte[] bytes = out.toByteArray();
-            return bytes;
-        } finally {
-            close(inputStream);
-        }
-    }
+	public static byte[] getBytes(InputStream inputStream) throws IOException {
+		try {
+			byte[] buffer = new byte[4096];
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			for (int count = inputStream.read(buffer); count >= 0; count = inputStream.read(buffer)) {
+				out.write(buffer, 0, count);
+			}
+			byte[] bytes = out.toByteArray();
+			return bytes;
+		} finally {
+			close(inputStream);
+		}
+	}
 
-    public static void flush(OutputStream thing) {
-        if (thing != null) {
-            try {
-                thing.flush();
-            } catch(Exception ignored) {
-            }
-        }
-    }
+	public static void flush(OutputStream thing) {
+		if (thing != null) {
+			try {
+				thing.flush();
+			} catch (Exception ignored) {
+			}
+		}
+	}
 
-    public static void flush(Writer thing) {
-        if (thing != null) {
-            try {
-                thing.flush();
-            } catch(Exception ignored) {
-            }
-        }
-    }
+	public static void flush(Writer thing) {
+		if (thing != null) {
+			try {
+				thing.flush();
+			} catch (Exception ignored) {
+			}
+		}
+	}
 
-    public static void close(JarFile thing) {
-        if (thing != null) {
-            try {
-                thing.close();
-            } catch(Exception ignored) {
-            }
-        }
-    }
+	public static void close(JarFile thing) {
+		if (thing != null) {
+			try {
+				thing.close();
+			} catch (Exception ignored) {
+			}
+		}
+	}
 
-    public static void close(InputStream thing) {
-        if (thing != null) {
-            try {
-                thing.close();
-            } catch(Exception ignored) {
-            }
-        }
-    }
+	public static void close(InputStream thing) {
+		if (thing != null) {
+			try {
+				thing.close();
+			} catch (Exception ignored) {
+			}
+		}
+	}
 
-    public static void close(OutputStream thing) {
-        if (thing != null) {
-            try {
-                thing.close();
-            } catch(Exception ignored) {
-            }
-        }
-    }
+	public static void close(OutputStream thing) {
+		if (thing != null) {
+			try {
+				thing.close();
+			} catch (Exception ignored) {
+			}
+		}
+	}
 
-    public static void close(Reader thing) {
-        if (thing != null) {
-            try {
-                thing.close();
-            } catch(Exception ignored) {
-            }
-        }
-    }
+	public static void close(Reader thing) {
+		if (thing != null) {
+			try {
+				thing.close();
+			} catch (Exception ignored) {
+			}
+		}
+	}
 
-    public static void close(Writer thing) {
-        if (thing != null) {
-            try {
-                thing.close();
-            } catch(Exception ignored) {
-            }
-        }
-    }
+	public static void close(Writer thing) {
+		if (thing != null) {
+			try {
+				thing.close();
+			} catch (Exception ignored) {
+			}
+		}
+	}
 
-    public static final class EmptyInputStream extends InputStream {
-        public int read() {
-            return -1;
-        }
+	public static final class EmptyInputStream extends InputStream {
+		public int read() {
+			return -1;
+		}
 
-        public int read(byte b[])  {
-            return -1;
-        }
+		public int read(byte b[]) {
+			return -1;
+		}
 
-        public int read(byte b[], int off, int len) {
-            return -1;
-        }
+		public int read(byte b[], int off, int len) {
+			return -1;
+		}
 
-        public long skip(long n) {
-            return 0;
-        }
+		public long skip(long n) {
+			return 0;
+		}
 
-        public int available() {
-            return 0;
-        }
+		public int available() {
+			return 0;
+		}
 
-        public void close() {
-        }
+		public void close() {
+		}
 
-        public synchronized void mark(int readlimit) {
-        }
+		public synchronized void mark(int readlimit) {
+		}
 
-        public synchronized void reset() {
-        }
+		public synchronized void reset() {
+		}
 
-        public boolean markSupported() {
-            return false;
-        }
-    }
+		public boolean markSupported() {
+			return false;
+		}
+	}
 }

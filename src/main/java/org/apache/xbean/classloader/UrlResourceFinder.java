@@ -41,262 +41,262 @@ import java.util.jar.Manifest;
  * @version $Rev: 776705 $ $Date: 2009-05-20 15:09:47 +0100 (Wed, 20 May 2009) $
  */
 public class UrlResourceFinder implements ResourceFinder {
-    private final Object lock = new Object();
+	private final Object lock = new Object();
 
-    private final LinkedHashSet urls = new LinkedHashSet();
-    private final LinkedHashMap classPath = new LinkedHashMap();
-    private final LinkedHashSet watchedFiles = new LinkedHashSet();
+	private final LinkedHashSet urls = new LinkedHashSet();
+	private final LinkedHashMap classPath = new LinkedHashMap();
+	private final LinkedHashSet watchedFiles = new LinkedHashSet();
 
-    private boolean destroyed = false;
+	private boolean destroyed = false;
 
-    public UrlResourceFinder() {
-    }
+	public UrlResourceFinder() {
+	}
 
-    public UrlResourceFinder(URL[] urls) {
-        addUrls(urls);
-    }
+	public UrlResourceFinder(URL[] urls) {
+		addUrls(urls);
+	}
 
-    public void destroy() {
-        synchronized (lock) {
-            if (destroyed) {
-                return;
-            }
-            destroyed = true;
-            urls.clear();
-            for (Iterator iterator = classPath.values().iterator(); iterator.hasNext();) {
-                ResourceLocation resourceLocation = (ResourceLocation) iterator.next();
-                resourceLocation.close();
-            }
-            classPath.clear();
-        }
-    }
+	public void destroy() {
+		synchronized (lock) {
+			if (destroyed) {
+				return;
+			}
+			destroyed = true;
+			urls.clear();
+			for (Iterator iterator = classPath.values().iterator(); iterator.hasNext();) {
+				ResourceLocation resourceLocation = (ResourceLocation) iterator.next();
+				resourceLocation.close();
+			}
+			classPath.clear();
+		}
+	}
 
-    public ResourceHandle getResource(String resourceName) {
-        synchronized (lock) {
-            if (destroyed) {
-                return null;
-            }
-            for (Iterator iterator = getClassPath().entrySet().iterator(); iterator.hasNext();) {
-                Map.Entry entry = (Map.Entry) iterator.next();
-                ResourceLocation resourceLocation = (ResourceLocation) entry.getValue();
-                ResourceHandle resourceHandle = resourceLocation.getResourceHandle(resourceName);
-                if (resourceHandle != null && !resourceHandle.isDirectory()) {
-                    return resourceHandle;
-                }
-            }
-        }
-        return null;
-    }
+	public ResourceHandle getResource(String resourceName) {
+		synchronized (lock) {
+			if (destroyed) {
+				return null;
+			}
+			for (Iterator iterator = getClassPath().entrySet().iterator(); iterator.hasNext();) {
+				Map.Entry entry = (Map.Entry) iterator.next();
+				ResourceLocation resourceLocation = (ResourceLocation) entry.getValue();
+				ResourceHandle resourceHandle = resourceLocation.getResourceHandle(resourceName);
+				if (resourceHandle != null && !resourceHandle.isDirectory()) {
+					return resourceHandle;
+				}
+			}
+		}
+		return null;
+	}
 
-    public URL findResource(String resourceName) {
-        synchronized (lock) {
-            if (destroyed) {
-                return null;
-            }
-            for (Iterator iterator = getClassPath().entrySet().iterator(); iterator.hasNext();) {
-                Map.Entry entry = (Map.Entry) iterator.next();
-                ResourceLocation resourceLocation = (ResourceLocation) entry.getValue();
-                ResourceHandle resourceHandle = resourceLocation.getResourceHandle(resourceName);
-                if (resourceHandle != null) {
-                    return resourceHandle.getUrl();
-                }
-            }
-        }
-        return null;
-    }
+	public URL findResource(String resourceName) {
+		synchronized (lock) {
+			if (destroyed) {
+				return null;
+			}
+			for (Iterator iterator = getClassPath().entrySet().iterator(); iterator.hasNext();) {
+				Map.Entry entry = (Map.Entry) iterator.next();
+				ResourceLocation resourceLocation = (ResourceLocation) entry.getValue();
+				ResourceHandle resourceHandle = resourceLocation.getResourceHandle(resourceName);
+				if (resourceHandle != null) {
+					return resourceHandle.getUrl();
+				}
+			}
+		}
+		return null;
+	}
 
-    public Enumeration findResources(String resourceName) {
-        synchronized (lock) {
-            return new ResourceEnumeration(new ArrayList(getClassPath().values()), resourceName);
-        }
-    }
+	public Enumeration findResources(String resourceName) {
+		synchronized (lock) {
+			return new ResourceEnumeration(new ArrayList(getClassPath().values()), resourceName);
+		}
+	}
 
-    public void addUrl(URL url) {
-        addUrls(Collections.singletonList(url));
-    }
+	public void addUrl(URL url) {
+		addUrls(Collections.singletonList(url));
+	}
 
-    public URL[] getUrls() {
-        synchronized (lock) {
-            return (URL[]) urls.toArray(new URL[urls.size()]);
-        }
-    }
+	public URL[] getUrls() {
+		synchronized (lock) {
+			return (URL[]) urls.toArray(new URL[urls.size()]);
+		}
+	}
 
-    /**
-     * Adds an array of urls to the end of this class loader.
-     * @param urls the URLs to add
-     */
-    protected void addUrls(URL[] urls) {
-        addUrls(Arrays.asList(urls));
-    }
+	/**
+	 * Adds an array of urls to the end of this class loader.
+	 * @param urls the URLs to add
+	 */
+	protected void addUrls(URL[] urls) {
+		addUrls(Arrays.asList(urls));
+	}
 
-    /**
-     * Adds a list of urls to the end of this class loader.
-     * @param urls the URLs to add
-     */
-    protected void addUrls(List urls) {
-        synchronized (lock) {
-            if (destroyed) {
-                throw new IllegalStateException("UrlResourceFinder has been destroyed");
-            }
+	/**
+	 * Adds a list of urls to the end of this class loader.
+	 * @param urls the URLs to add
+	 */
+	protected void addUrls(List urls) {
+		synchronized (lock) {
+			if (destroyed) {
+				throw new IllegalStateException("UrlResourceFinder has been destroyed");
+			}
 
-            boolean shouldRebuild = this.urls.addAll(urls);
-            if (shouldRebuild) {
-                rebuildClassPath();
-            }
-        }
-    }
+			boolean shouldRebuild = this.urls.addAll(urls);
+			if (shouldRebuild) {
+				rebuildClassPath();
+			}
+		}
+	}
 
-    private LinkedHashMap getClassPath() {
-        assert Thread.holdsLock(lock): "This method can only be called while holding the lock";
+	private LinkedHashMap getClassPath() {
+		assert Thread.holdsLock(lock) : "This method can only be called while holding the lock";
 
-        for (Iterator iterator = watchedFiles.iterator(); iterator.hasNext();) {
-            File file = (File) iterator.next();
-            if (file.canRead()) {
-                rebuildClassPath();
-                break;
-            }
-        }
+		for (Iterator iterator = watchedFiles.iterator(); iterator.hasNext();) {
+			File file = (File) iterator.next();
+			if (file.canRead()) {
+				rebuildClassPath();
+				break;
+			}
+		}
 
-        return classPath;
-    }
+		return classPath;
+	}
 
-    /**
-     * Rebuilds the entire class path.  This class is called when new URLs are added or one of the watched files
-     * becomes readable.  This method will not open jar files again, but will add any new entries not alredy open
-     * to the class path.  If any file based url is does not exist, we will watch for that file to appear.
-     */
-    private void rebuildClassPath() {
-        assert Thread.holdsLock(lock): "This method can only be called while holding the lock";
+	/**
+	 * Rebuilds the entire class path.  This class is called when new URLs are added or one of the watched files
+	 * becomes readable.  This method will not open jar files again, but will add any new entries not alredy open
+	 * to the class path.  If any file based url is does not exist, we will watch for that file to appear.
+	 */
+	private void rebuildClassPath() {
+		assert Thread.holdsLock(lock) : "This method can only be called while holding the lock";
 
-        // copy all of the existing locations into a temp map and clear the class path
-        Map existingJarFiles = new LinkedHashMap(classPath);
-        classPath.clear();
+		// copy all of the existing locations into a temp map and clear the class path
+		Map existingJarFiles = new LinkedHashMap(classPath);
+		classPath.clear();
 
-        LinkedList locationStack = new LinkedList(urls);
-        try {
-            while (!locationStack.isEmpty()) {
-                URL url = (URL) locationStack.removeFirst();
+		LinkedList locationStack = new LinkedList(urls);
+		try {
+			while (!locationStack.isEmpty()) {
+				URL url = (URL) locationStack.removeFirst();
 
-                // Skip any duplicate urls in the claspath
-                if (classPath.containsKey(url)) {
-                    continue;
-                }
+				// Skip any duplicate urls in the claspath
+				if (classPath.containsKey(url)) {
+					continue;
+				}
 
-                // Check is this URL has already been opened
-                ResourceLocation resourceLocation = (ResourceLocation) existingJarFiles.remove(url);
+				// Check is this URL has already been opened
+				ResourceLocation resourceLocation = (ResourceLocation) existingJarFiles.remove(url);
 
-                // If not opened, cache the url and wrap it with a resource location
-                if (resourceLocation == null) {
-                    try {
-                        File file = cacheUrl(url);
-                        resourceLocation = createResourceLocation(url, file);
-                    } catch (FileNotFoundException e) {
-                        // if this is a file URL, the file doesn't exist yet... watch to see if it appears later
-                        if ("file".equals(url.getProtocol())) {
-                            File file = new File(url.getPath());
-                            watchedFiles.add(file);
-                            continue;
+				// If not opened, cache the url and wrap it with a resource location
+				if (resourceLocation == null) {
+					try {
+						File file = cacheUrl(url);
+						resourceLocation = createResourceLocation(url, file);
+					} catch (FileNotFoundException e) {
+						// if this is a file URL, the file doesn't exist yet... watch to see if it appears later
+						if ("file".equals(url.getProtocol())) {
+							File file = new File(url.getPath());
+							watchedFiles.add(file);
+							continue;
 
-                        }
-                    } catch (IOException ignored) {
-                        // can't seem to open the file... this is most likely a bad jar file
-                        // so don't keep a watch out for it because that would require lots of checking
-                        // Dain: We may want to review this decision later
-                        continue;
-                    }
-                }
+						}
+					} catch (IOException ignored) {
+						// can't seem to open the file... this is most likely a bad jar file
+						// so don't keep a watch out for it because that would require lots of checking
+						// Dain: We may want to review this decision later
+						continue;
+					}
+				}
 
-                // add the jar to our class path
-                classPath.put(resourceLocation.getCodeSource(), resourceLocation);
+				// add the jar to our class path
+				classPath.put(resourceLocation.getCodeSource(), resourceLocation);
 
-                // push the manifest classpath on the stack (make sure to maintain the order)
-                List manifestClassPath = getManifestClassPath(resourceLocation);
-                locationStack.addAll(0, manifestClassPath);
-            }
-        } catch (Error e) {
-            destroy();
-            throw e;
-        }
+				// push the manifest classpath on the stack (make sure to maintain the order)
+				List manifestClassPath = getManifestClassPath(resourceLocation);
+				locationStack.addAll(0, manifestClassPath);
+			}
+		} catch (Error e) {
+			destroy();
+			throw e;
+		}
 
-        for (Iterator iterator = existingJarFiles.values().iterator(); iterator.hasNext();) {
-            ResourceLocation resourceLocation = (ResourceLocation) iterator.next();
-            resourceLocation.close();
-        }
-    }
+		for (Iterator iterator = existingJarFiles.values().iterator(); iterator.hasNext();) {
+			ResourceLocation resourceLocation = (ResourceLocation) iterator.next();
+			resourceLocation.close();
+		}
+	}
 
-    protected File cacheUrl(URL url) throws IOException {
-        if (!"file".equals(url.getProtocol())) {
-            // download the jar
-            throw new Error("Only local file jars are supported " + url);
-        }
+	protected File cacheUrl(URL url) throws IOException {
+		if (!"file".equals(url.getProtocol())) {
+			// download the jar
+			throw new Error("Only local file jars are supported " + url);
+		}
 
-        File file;
-        try {
-            file = new File(url.toURI());
-        } catch (URISyntaxException e) {
-            file = new File(url.getPath());
-        }
-        if (!file.exists()) {
-            throw new FileNotFoundException(file.getAbsolutePath());
-        }
-        if (!file.canRead()) {
-            throw new IOException("File is not readable: " + file.getAbsolutePath());
-        }
-        return file;
-    }
+		File file;
+		try {
+			file = new File(url.toURI());
+		} catch (URISyntaxException e) {
+			file = new File(url.getPath());
+		}
+		if (!file.exists()) {
+			throw new FileNotFoundException(file.getAbsolutePath());
+		}
+		if (!file.canRead()) {
+			throw new IOException("File is not readable: " + file.getAbsolutePath());
+		}
+		return file;
+	}
 
-    protected ResourceLocation createResourceLocation(URL codeSource, File cacheFile) throws IOException {
-        if (!cacheFile.exists()) {
-            throw new FileNotFoundException(cacheFile.getAbsolutePath());
-        }
-        if (!cacheFile.canRead()) {
-            throw new IOException("File is not readable: " + cacheFile.getAbsolutePath());
-        }
+	protected ResourceLocation createResourceLocation(URL codeSource, File cacheFile) throws IOException {
+		if (!cacheFile.exists()) {
+			throw new FileNotFoundException(cacheFile.getAbsolutePath());
+		}
+		if (!cacheFile.canRead()) {
+			throw new IOException("File is not readable: " + cacheFile.getAbsolutePath());
+		}
 
-        ResourceLocation resourceLocation = null;
-        if (cacheFile.isDirectory()) {
-            // DirectoryResourceLocation will only return "file" URLs within this directory
-            // do not user the DirectoryResourceLocation for non file based urls
-            resourceLocation = new DirectoryResourceLocation(cacheFile);
-        } else {
-            resourceLocation = new JarResourceLocation(codeSource, new JarFile(cacheFile));
-        }
-        return resourceLocation;
-    }
+		ResourceLocation resourceLocation = null;
+		if (cacheFile.isDirectory()) {
+			// DirectoryResourceLocation will only return "file" URLs within this directory
+			// do not user the DirectoryResourceLocation for non file based urls
+			resourceLocation = new DirectoryResourceLocation(cacheFile);
+		} else {
+			resourceLocation = new JarResourceLocation(codeSource, new JarFile(cacheFile));
+		}
+		return resourceLocation;
+	}
 
-    private List getManifestClassPath(ResourceLocation resourceLocation) {
-        try {
-            // get the manifest, if possible
-            Manifest manifest = resourceLocation.getManifest();
-            if (manifest == null) {
-                // some locations don't have a manifest
-                return Collections.EMPTY_LIST;
-            }
+	private List getManifestClassPath(ResourceLocation resourceLocation) {
+		try {
+			// get the manifest, if possible
+			Manifest manifest = resourceLocation.getManifest();
+			if (manifest == null) {
+				// some locations don't have a manifest
+				return Collections.EMPTY_LIST;
+			}
 
-            // get the class-path attribute, if possible
-            String manifestClassPath = manifest.getMainAttributes().getValue(Attributes.Name.CLASS_PATH);
-            if (manifestClassPath == null) {
-                return Collections.EMPTY_LIST;
-            }
+			// get the class-path attribute, if possible
+			String manifestClassPath = manifest.getMainAttributes().getValue(Attributes.Name.CLASS_PATH);
+			if (manifestClassPath == null) {
+				return Collections.EMPTY_LIST;
+			}
 
-            // build the urls...
-            // the class-path attribute is space delimited
-            URL codeSource = resourceLocation.getCodeSource();
-            LinkedList classPathUrls = new LinkedList();
-            for (StringTokenizer tokenizer = new StringTokenizer(manifestClassPath, " "); tokenizer.hasMoreTokens();) {
-                String entry = tokenizer.nextToken();
-                try {
-                    // the class path entry is relative to the resource location code source
-                    URL entryUrl = new URL(codeSource, entry);
-                    classPathUrls.addLast(entryUrl);
-                } catch (MalformedURLException ignored) {
-                    // most likely a poorly named entry
-                }
-            }
-            return classPathUrls;
-        } catch (IOException ignored) {
-            // error opening the manifest
-            return Collections.EMPTY_LIST;
-        }
-    }
+			// build the urls...
+			// the class-path attribute is space delimited
+			URL codeSource = resourceLocation.getCodeSource();
+			LinkedList classPathUrls = new LinkedList();
+			for (StringTokenizer tokenizer = new StringTokenizer(manifestClassPath, " "); tokenizer.hasMoreTokens();) {
+				String entry = tokenizer.nextToken();
+				try {
+					// the class path entry is relative to the resource location code source
+					URL entryUrl = new URL(codeSource, entry);
+					classPathUrls.addLast(entryUrl);
+				} catch (MalformedURLException ignored) {
+					// most likely a poorly named entry
+				}
+			}
+			return classPathUrls;
+		} catch (IOException ignored) {
+			// error opening the manifest
+			return Collections.EMPTY_LIST;
+		}
+	}
 }

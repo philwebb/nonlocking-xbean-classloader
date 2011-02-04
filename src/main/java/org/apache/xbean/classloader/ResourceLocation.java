@@ -25,8 +25,11 @@ import java.net.URL;
  * @version $Rev: 437551 $ $Date: 2006-08-28 07:14:47 +0100 (Mon, 28 Aug 2006) $
  */
 public interface ResourceLocation {
-    URL getCodeSource();    
-    ResourceHandle getResourceHandle(String resourceName);
-    Manifest getManifest() throws IOException;
-    void close();
+	URL getCodeSource();
+
+	ResourceHandle getResourceHandle(String resourceName);
+
+	Manifest getManifest() throws IOException;
+
+	void close();
 }

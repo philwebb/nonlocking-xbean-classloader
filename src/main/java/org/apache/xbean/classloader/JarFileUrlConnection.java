@@ -35,98 +35,101 @@ import java.util.jar.Manifest;
  * @version $Rev: 776705 $ $Date: 2009-05-20 15:09:47 +0100 (Wed, 20 May 2009) $
  */
 public class JarFileUrlConnection extends JarURLConnection {
-    public static final URL DUMMY_JAR_URL;
-    static {
-        try {
-            DUMMY_JAR_URL = new URL("jar", "", -1, "file:dummy!/", new URLStreamHandler() {
-                protected URLConnection openConnection(URL u) {
-                    throw new UnsupportedOperationException();
-                }
-            });
-        } catch (Exception e) {
-            throw new ExceptionInInitializerError(e);
-        }
-    }
+	public static final URL DUMMY_JAR_URL;
+	static {
+		try {
+			DUMMY_JAR_URL = new URL("jar", "", -1, "file:dummy!/", new URLStreamHandler() {
+				protected URLConnection openConnection(URL u) {
+					throw new UnsupportedOperationException();
+				}
+			});
+		} catch (Exception e) {
+			throw new ExceptionInInitializerError(e);
+		}
+	}
 
-    private final URL url;
-    private final JarFile jarFile;
-    private final JarEntry jarEntry;
-    private final URL jarFileUrl;
+	private final URL url;
+	private final JarFile jarFile;
+	private final JarEntry jarEntry;
+	private final URL jarFileUrl;
 
-    public JarFileUrlConnection(URL url, JarFile jarFile, JarEntry jarEntry) throws MalformedURLException {
-        super(DUMMY_JAR_URL);
+	public JarFileUrlConnection(URL url, JarFile jarFile, JarEntry jarEntry) throws MalformedURLException {
+		super(DUMMY_JAR_URL);
 
-        if (url == null) throw new NullPointerException("url is null");
-        if (jarFile == null) throw new NullPointerException("jarFile is null");
-        if (jarEntry == null) throw new NullPointerException("jarEntry is null");
+		if (url == null)
+			throw new NullPointerException("url is null");
+		if (jarFile == null)
+			throw new NullPointerException("jarFile is null");
+		if (jarEntry == null)
+			throw new NullPointerException("jarEntry is null");
 
-        this.url = url;
-        this.jarFile = jarFile;
-        this.jarEntry = jarEntry;
-        jarFileUrl = new File(jarFile.getName()).toURI().toURL();
-    }
+		this.url = url;
+		this.jarFile = jarFile;
+		this.jarEntry = jarEntry;
+		jarFileUrl = new File(jarFile.getName()).toURI().toURL();
+	}
 
-    public JarFile getJarFile() throws IOException {
-        return jarFile;
-    }
+	public JarFile getJarFile() throws IOException {
+		return jarFile;
+	}
 
-    public synchronized void connect() {
-    }
+	public synchronized void connect() {
+	}
 
-    public URL getJarFileURL() {
-        return jarFileUrl;
-    }
+	public URL getJarFileURL() {
+		return jarFileUrl;
+	}
 
-    public String getEntryName() {
-        return getJarEntry().getName();
-    }
+	public String getEntryName() {
+		return getJarEntry().getName();
+	}
 
-    public Manifest getManifest() throws IOException {
-        return jarFile.getManifest();
-    }
+	public Manifest getManifest() throws IOException {
+		return jarFile.getManifest();
+	}
 
-    public JarEntry getJarEntry() {
-        return jarEntry;
-    }
+	public JarEntry getJarEntry() {
+		return jarEntry;
+	}
 
-    public Attributes getAttributes() throws IOException {
-        return getJarEntry().getAttributes();
-    }
+	public Attributes getAttributes() throws IOException {
+		return getJarEntry().getAttributes();
+	}
 
-    public Attributes getMainAttributes() throws IOException {
-        return getManifest().getMainAttributes();
-    }
+	public Attributes getMainAttributes() throws IOException {
+		return getManifest().getMainAttributes();
+	}
 
-    public Certificate[] getCertificates() throws IOException {
-        return getJarEntry().getCertificates();
-    }
+	public Certificate[] getCertificates() throws IOException {
+		return getJarEntry().getCertificates();
+	}
 
-    public URL getURL() {
-        return url;
-    }
+	public URL getURL() {
+		return url;
+	}
 
-    public int getContentLength() {
-        long size = getJarEntry().getSize();
-        if (size > Integer.MAX_VALUE) {
-            return -1;
-        }
-        return (int) size;
-    }
+	public int getContentLength() {
+		long size = getJarEntry().getSize();
+		if (size > Integer.MAX_VALUE) {
+			return -1;
+		}
+		return (int) size;
+	}
 
-    public long getLastModified() {
-        return getJarEntry().getTime();
-    }
+	public long getLastModified() {
+		return getJarEntry().getTime();
+	}
 
-    public synchronized InputStream getInputStream() throws IOException {
-        return jarFile.getInputStream(jarEntry);
-    }
+	public synchronized InputStream getInputStream() throws IOException {
+		return jarFile.getInputStream(jarEntry);
+	}
 
-    public Permission getPermission() throws IOException {
-        URL jarFileUrl = new File(jarFile.getName()).toURI().toURL();
-        return jarFileUrl.openConnection().getPermission();
-    }
+	public Permission getPermission() throws IOException {
+		URL jarFileUrl = new File(jarFile.getName()).toURI().toURL();
+		return jarFileUrl.openConnection().getPermission();
+	}
 
-    public String toString() {
-        return JarFileUrlConnection.class.getName() + ":" + url;
-    }
+	public String toString() {
+		return JarFileUrlConnection.class.getName() + ":" + url;
+	}
 }

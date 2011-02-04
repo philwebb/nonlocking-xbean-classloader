@@ -38,308 +38,310 @@ import java.util.List;
  * @since 2.0
  */
 public class MultiParentClassLoader extends NamedClassLoader {
-    private final ClassLoader[] parents;
-    private final boolean inverseClassLoading;
-    private final String[] hiddenClasses;
-    private final String[] nonOverridableClasses;
-    private final String[] hiddenResources;
-    private final String[] nonOverridableResources;
+	private final ClassLoader[] parents;
+	private final boolean inverseClassLoading;
+	private final String[] hiddenClasses;
+	private final String[] nonOverridableClasses;
+	private final String[] hiddenResources;
+	private final String[] nonOverridableResources;
 
-    /**
-     * Creates a named class loader with no parents.
-     * @param name the name of this class loader
-     * @param urls the urls from which this class loader will classes and resources
-     */
-    public MultiParentClassLoader(String name, URL[] urls) {
-        this(name, urls, ClassLoader.getSystemClassLoader());
-    }
+	/**
+	 * Creates a named class loader with no parents.
+	 * @param name the name of this class loader
+	 * @param urls the urls from which this class loader will classes and resources
+	 */
+	public MultiParentClassLoader(String name, URL[] urls) {
+		this(name, urls, ClassLoader.getSystemClassLoader());
+	}
 
-    /**
-     * Creates a named class loader as a child of the specified parent.
-     * @param name the name of this class loader
-     * @param urls the urls from which this class loader will classes and resources
-     * @param parent the parent of this class loader
-     */
-    public MultiParentClassLoader(String name, URL[] urls, ClassLoader parent) {
-        this(name, urls, new ClassLoader[] {parent});
-    }
+	/**
+	 * Creates a named class loader as a child of the specified parent.
+	 * @param name the name of this class loader
+	 * @param urls the urls from which this class loader will classes and resources
+	 * @param parent the parent of this class loader
+	 */
+	public MultiParentClassLoader(String name, URL[] urls, ClassLoader parent) {
+		this(name, urls, new ClassLoader[] { parent });
+	}
 
-    /**
-     * Creates a named class loader as a child of the specified parent and using the specified URLStreamHandlerFactory
-     * for accessing the urls..
-     * @param name the name of this class loader
-     * @param urls the urls from which this class loader will classes and resources
-     * @param parent the parent of this class loader
-     * @param factory the URLStreamHandlerFactory used to access the urls
-     */
-    public MultiParentClassLoader(String name, URL[] urls, ClassLoader parent, URLStreamHandlerFactory factory) {
-        this(name, urls, new ClassLoader[] {parent}, factory);
-    }
+	/**
+	 * Creates a named class loader as a child of the specified parent and using the specified URLStreamHandlerFactory
+	 * for accessing the urls..
+	 * @param name the name of this class loader
+	 * @param urls the urls from which this class loader will classes and resources
+	 * @param parent the parent of this class loader
+	 * @param factory the URLStreamHandlerFactory used to access the urls
+	 */
+	public MultiParentClassLoader(String name, URL[] urls, ClassLoader parent, URLStreamHandlerFactory factory) {
+		this(name, urls, new ClassLoader[] { parent }, factory);
+	}
 
-    /**
-     * Creates a named class loader as a child of the specified parents.
-     * @param name the name of this class loader
-     * @param urls the urls from which this class loader will classes and resources
-     * @param parents the parents of this class loader
-     */
-    public MultiParentClassLoader(String name, URL[] urls, ClassLoader[] parents) {
-        this(name, urls, parents, false, new String[0], new String[0]);
-    }
+	/**
+	 * Creates a named class loader as a child of the specified parents.
+	 * @param name the name of this class loader
+	 * @param urls the urls from which this class loader will classes and resources
+	 * @param parents the parents of this class loader
+	 */
+	public MultiParentClassLoader(String name, URL[] urls, ClassLoader[] parents) {
+		this(name, urls, parents, false, new String[0], new String[0]);
+	}
 
-    public MultiParentClassLoader(String name, URL[] urls, ClassLoader parent, boolean inverseClassLoading, String[] hiddenClasses, String[] nonOverridableClasses) {
-        this(name, urls, new ClassLoader[]{parent}, inverseClassLoading, hiddenClasses, nonOverridableClasses);
-    }
-    
-    /**
-     * Creates a named class loader as a child of the specified parents and using the specified URLStreamHandlerFactory
-     * for accessing the urls..
-     * @param name the name of this class loader
-     * @param urls the urls from which this class loader will classes and resources
-     * @param parents the parents of this class loader
-     * @param factory the URLStreamHandlerFactory used to access the urls
-     */
-    public MultiParentClassLoader(String name, URL[] urls, ClassLoader[] parents, URLStreamHandlerFactory factory) {
-        super(name, urls, null, factory);
-        this.parents = copyParents(parents);
-        this.inverseClassLoading = false;
-        this.hiddenClasses = new String[0];
-        this.nonOverridableClasses = new String[0];
-        this.hiddenResources = new String[0];
-        this.nonOverridableResources = new String[0];
-    }
+	public MultiParentClassLoader(String name, URL[] urls, ClassLoader parent, boolean inverseClassLoading,
+			String[] hiddenClasses, String[] nonOverridableClasses) {
+		this(name, urls, new ClassLoader[] { parent }, inverseClassLoading, hiddenClasses, nonOverridableClasses);
+	}
 
-    public MultiParentClassLoader(String name, URL[] urls, ClassLoader[] parents, boolean inverseClassLoading, Collection hiddenClasses, Collection nonOverridableClasses) {
-        this(name, urls, parents, inverseClassLoading, (String[]) hiddenClasses.toArray(new String[hiddenClasses.size()]), (String[]) nonOverridableClasses.toArray(new String[nonOverridableClasses.size()]));
-    }
+	/**
+	 * Creates a named class loader as a child of the specified parents and using the specified URLStreamHandlerFactory
+	 * for accessing the urls..
+	 * @param name the name of this class loader
+	 * @param urls the urls from which this class loader will classes and resources
+	 * @param parents the parents of this class loader
+	 * @param factory the URLStreamHandlerFactory used to access the urls
+	 */
+	public MultiParentClassLoader(String name, URL[] urls, ClassLoader[] parents, URLStreamHandlerFactory factory) {
+		super(name, urls, null, factory);
+		this.parents = copyParents(parents);
+		this.inverseClassLoading = false;
+		this.hiddenClasses = new String[0];
+		this.nonOverridableClasses = new String[0];
+		this.hiddenResources = new String[0];
+		this.nonOverridableResources = new String[0];
+	}
 
-    public MultiParentClassLoader(String name, URL[] urls, ClassLoader[] parents, boolean inverseClassLoading, String[] hiddenClasses, String[] nonOverridableClasses) {
-        super(name, urls);
-        this.parents = copyParents(parents);
-        this.inverseClassLoading = inverseClassLoading;
-        this.hiddenClasses = hiddenClasses;
-        this.nonOverridableClasses = nonOverridableClasses;
-        hiddenResources = toResources(hiddenClasses);
-        nonOverridableResources = toResources(nonOverridableClasses);
-    }
+	public MultiParentClassLoader(String name, URL[] urls, ClassLoader[] parents, boolean inverseClassLoading,
+			Collection hiddenClasses, Collection nonOverridableClasses) {
+		this(name, urls, parents, inverseClassLoading, (String[]) hiddenClasses
+				.toArray(new String[hiddenClasses.size()]), (String[]) nonOverridableClasses
+				.toArray(new String[nonOverridableClasses.size()]));
+	}
 
-    private static String[] toResources(String[] classes) {
-        String[] resources = new String[classes.length];
-        for (int i = 0; i < classes.length; i++) {
-            String className = classes[i];
-            resources[i] = className.replace('.', '/');
-        }
-        return resources;
-    }
-    
-    private static ClassLoader[] copyParents(ClassLoader[] parents) {
-        ClassLoader[] newParentsArray = new ClassLoader[parents.length];
-        for (int i = 0; i < parents.length; i++) {
-            ClassLoader parent = parents[i];
-            if (parent == null) {
-                throw new NullPointerException("parent[" + i + "] is null");
-            }
-            newParentsArray[i] = parent;
-        }
-        return newParentsArray;
-    }
+	public MultiParentClassLoader(String name, URL[] urls, ClassLoader[] parents, boolean inverseClassLoading,
+			String[] hiddenClasses, String[] nonOverridableClasses) {
+		super(name, urls);
+		this.parents = copyParents(parents);
+		this.inverseClassLoading = inverseClassLoading;
+		this.hiddenClasses = hiddenClasses;
+		this.nonOverridableClasses = nonOverridableClasses;
+		hiddenResources = toResources(hiddenClasses);
+		nonOverridableResources = toResources(nonOverridableClasses);
+	}
 
-    /**
-     * Gets the parents of this class loader.
-     * @return the parents of this class loader
-     */
-    public ClassLoader[] getParents() {
-        return parents;
-    }
+	private static String[] toResources(String[] classes) {
+		String[] resources = new String[classes.length];
+		for (int i = 0; i < classes.length; i++) {
+			String className = classes[i];
+			resources[i] = className.replace('.', '/');
+		}
+		return resources;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    protected synchronized Class loadClass(String name, boolean resolve) throws ClassNotFoundException {
-        //
-        // Check if class is in the loaded classes cache
-        //
-        Class cachedClass = findLoadedClass(name);
-        if (cachedClass != null) {
-            return resolveClass(cachedClass, resolve);
-        }
-        
-        //
-        // if we are using inverse class loading, check local urls first
-        //
-        if (inverseClassLoading && !isDestroyed() && !isNonOverridableClass(name)) {
-            try {
-                Class clazz = findClass(name);
-                return resolveClass(clazz, resolve);
-            } catch (ClassNotFoundException ignored) {
-            }
-        }
+	private static ClassLoader[] copyParents(ClassLoader[] parents) {
+		ClassLoader[] newParentsArray = new ClassLoader[parents.length];
+		for (int i = 0; i < parents.length; i++) {
+			ClassLoader parent = parents[i];
+			if (parent == null) {
+				throw new NullPointerException("parent[" + i + "] is null");
+			}
+			newParentsArray[i] = parent;
+		}
+		return newParentsArray;
+	}
 
-        //
-        // Check parent class loaders
-        //
-        if (!isHiddenClass(name)) {
-            for (int i = 0; i < parents.length; i++) {
-                ClassLoader parent = parents[i];
-                try {
-                    Class clazz = parent.loadClass(name);
-                    return resolveClass(clazz, resolve);
-                } catch (ClassNotFoundException ignored) {
-                    // this parent didn't have the class; try the next one
-                }
-            }
-        }
+	/**
+	 * Gets the parents of this class loader.
+	 * @return the parents of this class loader
+	 */
+	public ClassLoader[] getParents() {
+		return parents;
+	}
 
-        //
-        // if we are not using inverse class loading, check local urls now
-        //
-        // don't worry about excluding non-overridable classes here... we
-        // have alredy checked he parent and the parent didn't have the
-        // class, so we can override now
-        if (!isDestroyed()) {
-            try {
-                Class clazz = findClass(name);
-                return resolveClass(clazz, resolve);
-            } catch (ClassNotFoundException ignored) {
-            }
-        }
+	/**
+	 * {@inheritDoc}
+	 */
+	protected synchronized Class loadClass(String name, boolean resolve) throws ClassNotFoundException {
+		//
+		// Check if class is in the loaded classes cache
+		//
+		Class cachedClass = findLoadedClass(name);
+		if (cachedClass != null) {
+			return resolveClass(cachedClass, resolve);
+		}
 
-        throw new ClassNotFoundException(name + " in classloader " + getName());
-    }
+		//
+		// if we are using inverse class loading, check local urls first
+		//
+		if (inverseClassLoading && !isDestroyed() && !isNonOverridableClass(name)) {
+			try {
+				Class clazz = findClass(name);
+				return resolveClass(clazz, resolve);
+			} catch (ClassNotFoundException ignored) {
+			}
+		}
 
-    private boolean isNonOverridableClass(String name) {
-        for (int i = 0; i < nonOverridableClasses.length; i++) {
-            if (name.startsWith(nonOverridableClasses[i])) {
-                return true;
-            }
-        }
-        return false;
-    }
+		//
+		// Check parent class loaders
+		//
+		if (!isHiddenClass(name)) {
+			for (int i = 0; i < parents.length; i++) {
+				ClassLoader parent = parents[i];
+				try {
+					Class clazz = parent.loadClass(name);
+					return resolveClass(clazz, resolve);
+				} catch (ClassNotFoundException ignored) {
+					// this parent didn't have the class; try the next one
+				}
+			}
+		}
 
-    private boolean isHiddenClass(String name) {
-        for (int i = 0; i < hiddenClasses.length; i++) {
-            if (name.startsWith(hiddenClasses[i])) {
-                return true;
-            }
-        }
-        return false;
-    }
+		//
+		// if we are not using inverse class loading, check local urls now
+		//
+		// don't worry about excluding non-overridable classes here... we
+		// have alredy checked he parent and the parent didn't have the
+		// class, so we can override now
+		if (!isDestroyed()) {
+			try {
+				Class clazz = findClass(name);
+				return resolveClass(clazz, resolve);
+			} catch (ClassNotFoundException ignored) {
+			}
+		}
 
-    private Class resolveClass(Class clazz, boolean resolve) {
-        if (resolve) {
-            resolveClass(clazz);
-        }
-        return clazz;
-    }
+		throw new ClassNotFoundException(name + " in classloader " + getName());
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    public URL getResource(String name) {
-        if (isDestroyed()) {
-            return null;
-        }
+	private boolean isNonOverridableClass(String name) {
+		for (int i = 0; i < nonOverridableClasses.length; i++) {
+			if (name.startsWith(nonOverridableClasses[i])) {
+				return true;
+			}
+		}
+		return false;
+	}
 
-        //
-        // if we are using inverse class loading, check local urls first
-        //
-        if (inverseClassLoading && !isDestroyed() && !isNonOverridableResource(name)) {
-            URL url = findResource(name);
-            if (url != null) {
-                return url;
-            }
-        }
+	private boolean isHiddenClass(String name) {
+		for (int i = 0; i < hiddenClasses.length; i++) {
+			if (name.startsWith(hiddenClasses[i])) {
+				return true;
+			}
+		}
+		return false;
+	}
 
-        //
-        // Check parent class loaders
-        //
-        if (!isHiddenResource(name)) {
-            for (int i = 0; i < parents.length; i++) {
-                ClassLoader parent = parents[i];
-                URL url = parent.getResource(name);
-                if (url != null) {
-                    return url;
-                }
-            }
-        }
+	private Class resolveClass(Class clazz, boolean resolve) {
+		if (resolve) {
+			resolveClass(clazz);
+		}
+		return clazz;
+	}
 
-        //
-        // if we are not using inverse class loading, check local urls now
-        //
-        // don't worry about excluding non-overridable resources here... we
-        // have alredy checked he parent and the parent didn't have the
-        // resource, so we can override now
-        if (!isDestroyed()) {
-            // parents didn't have the resource; attempt to load it from my urls
-            return findResource(name);
-        }
+	/**
+	 * {@inheritDoc}
+	 */
+	public URL getResource(String name) {
+		if (isDestroyed()) {
+			return null;
+		}
 
-        return null;
-    }
+		//
+		// if we are using inverse class loading, check local urls first
+		//
+		if (inverseClassLoading && !isDestroyed() && !isNonOverridableResource(name)) {
+			URL url = findResource(name);
+			if (url != null) {
+				return url;
+			}
+		}
 
-    /**
-     * {@inheritDoc}
-     */
-    public Enumeration findResources(String name) throws IOException {
-        if (isDestroyed()) {
-            return Collections.enumeration(Collections.EMPTY_SET);
-        }
+		//
+		// Check parent class loaders
+		//
+		if (!isHiddenResource(name)) {
+			for (int i = 0; i < parents.length; i++) {
+				ClassLoader parent = parents[i];
+				URL url = parent.getResource(name);
+				if (url != null) {
+					return url;
+				}
+			}
+		}
 
-        List resources = new ArrayList();
+		//
+		// if we are not using inverse class loading, check local urls now
+		//
+		// don't worry about excluding non-overridable resources here... we
+		// have alredy checked he parent and the parent didn't have the
+		// resource, so we can override now
+		if (!isDestroyed()) {
+			// parents didn't have the resource; attempt to load it from my urls
+			return findResource(name);
+		}
 
-        //
-        // if we are using inverse class loading, add the resources from local urls first
-        //
-        if (inverseClassLoading && !isDestroyed()) {
-            List myResources = Collections.list(super.findResources(name));
-            resources.addAll(myResources);
-        }
+		return null;
+	}
 
-        //
-        // Add parent resources
-        //
-        for (int i = 0; i < parents.length; i++) {
-            ClassLoader parent = parents[i];
-            List parentResources = Collections.list(parent.getResources(name));
-            resources.addAll(parentResources);
-        }
+	/**
+	 * {@inheritDoc}
+	 */
+	public Enumeration findResources(String name) throws IOException {
+		if (isDestroyed()) {
+			return Collections.enumeration(Collections.EMPTY_SET);
+		}
 
-        //
-        // if we are not using inverse class loading, add the resources from local urls now
-        //
-        if (!inverseClassLoading && !isDestroyed()) {
-            List myResources = Collections.list(super.findResources(name));
-            resources.addAll(myResources);
-        }
+		List resources = new ArrayList();
 
-        return Collections.enumeration(resources);
-    }
+		//
+		// if we are using inverse class loading, add the resources from local urls first
+		//
+		if (inverseClassLoading && !isDestroyed()) {
+			List myResources = Collections.list(super.findResources(name));
+			resources.addAll(myResources);
+		}
 
-    private boolean isNonOverridableResource(String name) {
-        for (int i = 0; i < nonOverridableResources.length; i++) {
-            if (name.startsWith(nonOverridableResources[i])) {
-                return true;
-            }
-        }
-        return false;
-    }
+		//
+		// Add parent resources
+		//
+		for (int i = 0; i < parents.length; i++) {
+			ClassLoader parent = parents[i];
+			List parentResources = Collections.list(parent.getResources(name));
+			resources.addAll(parentResources);
+		}
 
-    private boolean isHiddenResource(String name) {
-        for (int i = 0; i < hiddenResources.length; i++) {
-            if (name.startsWith(hiddenResources[i])) {
-                return true;
-            }
-        }
-        return false;
-    }
+		//
+		// if we are not using inverse class loading, add the resources from local urls now
+		//
+		if (!inverseClassLoading && !isDestroyed()) {
+			List myResources = Collections.list(super.findResources(name));
+			resources.addAll(myResources);
+		}
 
-    /**
-     * {@inheritDoc}
-     */
-    public String toString() {
-        return "[" + getClass().getName() + ":" +
-                " name=" + getName() +
-                " urls=" + Arrays.asList(getURLs()) +
-                " parents=" + Arrays.asList(parents) +
-                "]";
-    }
+		return Collections.enumeration(resources);
+	}
+
+	private boolean isNonOverridableResource(String name) {
+		for (int i = 0; i < nonOverridableResources.length; i++) {
+			if (name.startsWith(nonOverridableResources[i])) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean isHiddenResource(String name) {
+		for (int i = 0; i < hiddenResources.length; i++) {
+			if (name.startsWith(hiddenResources[i])) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public String toString() {
+		return "[" + getClass().getName() + ":" + " name=" + getName() + " urls=" + Arrays.asList(getURLs())
+				+ " parents=" + Arrays.asList(parents) + "]";
+	}
 }

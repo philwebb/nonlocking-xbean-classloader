@@ -25,59 +25,59 @@ import java.util.NoSuchElementException;
  * @version $Rev: 437551 $ $Date: 2006-08-28 07:14:47 +0100 (Mon, 28 Aug 2006) $
  */
 public class ResourceEnumeration implements Enumeration {
-    private Iterator iterator;
-    private final String resourceName;
-    private Object next;
+	private Iterator iterator;
+	private final String resourceName;
+	private Object next;
 
-    public ResourceEnumeration(Collection resourceLocations, String resourceName) {
-        this.iterator = resourceLocations.iterator();
-        this.resourceName = resourceName;
-    }
+	public ResourceEnumeration(Collection resourceLocations, String resourceName) {
+		this.iterator = resourceLocations.iterator();
+		this.resourceName = resourceName;
+	}
 
-    public boolean hasMoreElements() {
-        fetchNext();
-        return (next != null);
-    }
+	public boolean hasMoreElements() {
+		fetchNext();
+		return (next != null);
+	}
 
-    public Object nextElement() {
-        fetchNext();
+	public Object nextElement() {
+		fetchNext();
 
-        // save next into a local variable and clear the next field
-        Object next = this.next;
-        this.next = null;
+		// save next into a local variable and clear the next field
+		Object next = this.next;
+		this.next = null;
 
-        // if we didn't have a next throw an exception
-        if (next == null) {
-            throw new NoSuchElementException();
-        }
-        return next;
-    }
+		// if we didn't have a next throw an exception
+		if (next == null) {
+			throw new NoSuchElementException();
+		}
+		return next;
+	}
 
-    private void fetchNext() {
-        if (iterator == null) {
-            return;
-        }
-        if (next != null) {
-            return;
-        }
+	private void fetchNext() {
+		if (iterator == null) {
+			return;
+		}
+		if (next != null) {
+			return;
+		}
 
-        try {
-            while (iterator.hasNext()) {
-                ResourceLocation resourceLocation = (ResourceLocation) iterator.next();
-                ResourceHandle resourceHandle = resourceLocation.getResourceHandle(resourceName);
-                if (resourceHandle != null) {
-                    next = resourceHandle.getUrl();
-                    return;
-                }
-            }
-            // no more elements
-            // clear the iterator so it can be GCed
-            iterator = null;
-        } catch (IllegalStateException e) {
-            // Jar file was closed... this means the resource finder was destroyed
-            // clear the iterator so it can be GCed
-            iterator = null;
-            throw e;
-        }
-    }
+		try {
+			while (iterator.hasNext()) {
+				ResourceLocation resourceLocation = (ResourceLocation) iterator.next();
+				ResourceHandle resourceHandle = resourceLocation.getResourceHandle(resourceName);
+				if (resourceHandle != null) {
+					next = resourceHandle.getUrl();
+					return;
+				}
+			}
+			// no more elements
+			// clear the iterator so it can be GCed
+			iterator = null;
+		} catch (IllegalStateException e) {
+			// Jar file was closed... this means the resource finder was destroyed
+			// clear the iterator so it can be GCed
+			iterator = null;
+			throw e;
+		}
+	}
 }

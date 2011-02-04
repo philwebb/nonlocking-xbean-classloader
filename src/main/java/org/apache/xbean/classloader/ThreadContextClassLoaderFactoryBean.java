@@ -27,15 +27,15 @@ import org.springframework.beans.factory.FactoryBean;
  */
 public class ThreadContextClassLoaderFactoryBean implements FactoryBean {
 
-    public Object getObject() throws Exception {
-        return Thread.currentThread().getContextClassLoader();
-    }
+	public Object getObject() throws Exception {
+		return Thread.currentThread().getContextClassLoader();
+	}
 
-    public Class getObjectType() {
-        return ClassLoader.class;
-    }
+	public Class getObjectType() {
+		return ClassLoader.class;
+	}
 
-    public boolean isSingleton() {
-        return true;
-    }
+	public boolean isSingleton() {
+		return true;
+	}
 }

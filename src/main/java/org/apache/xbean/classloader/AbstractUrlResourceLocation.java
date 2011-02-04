@@ -22,32 +22,34 @@ import java.net.URL;
  * @version $Rev: 437551 $ $Date: 2006-08-28 07:14:47 +0100 (Mon, 28 Aug 2006) $
  */
 public abstract class AbstractUrlResourceLocation implements ResourceLocation {
-    private final URL codeSource;
+	private final URL codeSource;
 
-    public AbstractUrlResourceLocation(URL codeSource) {
-        this.codeSource = codeSource;
-    }
+	public AbstractUrlResourceLocation(URL codeSource) {
+		this.codeSource = codeSource;
+	}
 
-    public final URL getCodeSource() {
-        return codeSource;
-    }
+	public final URL getCodeSource() {
+		return codeSource;
+	}
 
-    public void close() {
-    }
+	public void close() {
+	}
 
-    public final boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+	public final boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
 
-        AbstractUrlResourceLocation that = (AbstractUrlResourceLocation) o;
-        return codeSource.equals(that.codeSource);
-    }
+		AbstractUrlResourceLocation that = (AbstractUrlResourceLocation) o;
+		return codeSource.equals(that.codeSource);
+	}
 
-    public final int hashCode() {
-        return codeSource.hashCode();
-    }
+	public final int hashCode() {
+		return codeSource.hashCode();
+	}
 
-    public final String toString() {
-        return "[" + getClass().getName() + ": " + codeSource + "]";
-    }
+	public final String toString() {
+		return "[" + getClass().getName() + ": " + codeSource + "]";
+	}
 }
